@@ -2,40 +2,109 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Trachytalk.MainPage">
-
-    <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
-
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
-
-        </VerticalStackLayout>
-    </ScrollView>
+    
+    <Grid RowDefinitions="2*,8*"
+          Padding="2"
+          Margin="2"
+          ColumnSpacing="2"
+          RowSpacing="2">
+        <Grid Grid.Row="0">
+            <!-- This will be the screen -->
+        </Grid>
+        
+        <Grid Grid.Row="1"
+              Margin="0"
+              Padding="0"
+              RowSpacing="2"
+              RowDefinitions="*,*,*,*">
+            <!-- This will be the keyboard -->
+            
+            <Grid Grid.Row="0"
+                  Margin="0"
+                  Padding="0"
+                  ColumnDefinitions="*,*,*,*,*,*,*,*,*,*"
+                  ColumnSpacing="2">
+                <Button Text="Q"
+                        Grid.Column="0"/>
+                <Button Text="W"
+                        Grid.Column="1"/>
+                <Button Text="E"
+                        Grid.Column="2"/>
+                <Button Text="R"
+                        Grid.Column="3"/>
+                <Button Text="T"
+                        Grid.Column="4"/>
+                <Button Text="Y"
+                        Grid.Column="5"/>
+                <Button Text="U"
+                        Grid.Column="6"/>
+                <Button Text="I"
+                        Grid.Column="7"/>
+                <Button Text="O"
+                        Grid.Column="8"/>
+                <Button Text="P"
+                        Grid.Column="9"/>
+            </Grid>
+            
+            <Grid Grid.Row="1"
+                  Margin="0"
+                  Padding="0"
+                  ColumnDefinitions="*,*,*,*,*,*,*,*,*"
+                  ColumnSpacing="2">
+                <Button Text="A"
+                        Grid.Column="0"/>
+                <Button Text="S"
+                        Grid.Column="1"/>
+                <Button Text="D"
+                        Grid.Column="2"/>
+                <Button Text="F"
+                        Grid.Column="3"/>
+                <Button Text="G"
+                        Grid.Column="4"/>
+                <Button Text="H"
+                        Grid.Column="5"/>
+                <Button Text="J"
+                        Grid.Column="6"/>
+                <Button Text="K"
+                        Grid.Column="7"/>
+                <Button Text="L"
+                        Grid.Column="8"/>
+            </Grid>
+            
+            <Grid Grid.Row="2"
+                  Margin="0"
+                  Padding="0"
+                  ColumnDefinitions="*,*,*,*,*,*,*"
+                  ColumnSpacing="2">
+                <Button Text="Z"
+                        Grid.Column="0"/>
+                <Button Text="X"
+                        Grid.Column="1"/>
+                <Button Text="C"
+                        Grid.Column="2"/>
+                <Button Text="V"
+                        Grid.Column="3"/>
+                <Button Text="B"
+                        Grid.Column="4"/>
+                <Button Text="N"
+                        Grid.Column="5"/>
+                <Button Text="M"
+                        Grid.Column="6"/>
+            </Grid>
+            
+            <Grid Grid.Row="3"
+                  Margin="0"
+                  Padding="0"
+                  ColumnDefinitions="*,3*,*"
+                  ColumnSpacing="2">
+                <Button Text="Backspace"
+                        Grid.Column="0"/>
+                <Button Text="Space"
+                        Grid.Column="1"/>
+                <Button Text="Enter"
+                        Grid.Column="2"/>
+            </Grid>
+        </Grid>
+    </Grid>
 
 </ContentPage>
