@@ -28,8 +28,8 @@
                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.RemoveWordCommand}"
                                                                           CommandParameter="{Binding Id}"></TapGestureRecognizer>
                                             </Border.GestureRecognizers>
-                                            <HorizontalStackLayout Spacing="3"
-                                                                   Padding="3">
+                                            <HorizontalStackLayout Spacing="5"
+                                                                   Padding="5">
                                                     <Label Text="{Binding Text}"
                                                            FontSize="Title"
                                                            TextColor="White"
@@ -98,7 +98,7 @@
             </Grid>
             
             <Grid Grid.Row="1"
-                  Margin="0"
+                  Margin="10,0"
                   Padding="0"
                   ColumnDefinitions="*,*,*,*,*,*,*,*,*"
                   ColumnSpacing="2">
@@ -132,7 +132,7 @@
             </Grid>
             
             <Grid Grid.Row="2"
-                  Margin="0"
+                  Margin="60,0"
                   Padding="0"
                   ColumnDefinitions="*,*,*,*,*,*,*"
                   ColumnSpacing="2">
@@ -164,7 +164,7 @@
                   Padding="0"
                   ColumnDefinitions="*,3*,*"
                   ColumnSpacing="2">
-                <Button Text="🔙 DEL"
+                <Button Text="← DEL"
                         Command="{Binding BackspacePressedCommand}"
                         Grid.Column="0"/>
                 <Button Text="Space"
