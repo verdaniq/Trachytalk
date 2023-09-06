@@ -15,7 +15,7 @@
 		<ApplicationTitle>Trachytalk</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.trachytalk</ApplicationId>
+		<ApplicationId>com.goforgoldman.trachytalk</ApplicationId>
 		<ApplicationIdGuid>dc98ac19-2ba0-4b8c-919f-426435055283</ApplicationIdGuid>
 
 		<!-- Versions -->

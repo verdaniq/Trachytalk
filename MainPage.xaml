@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Trachytalk.ViewModels"
+             xmlns:models="clr-namespace:Trachytalk.Models"
+             x:Name="SpeakPage"
+             x:DataType="vm:MainViewModel"
              x:Class="Trachytalk.MainPage">
     
     <Grid RowDefinitions="2*,8*"
@@ -10,6 +14,43 @@
           RowSpacing="2">
         <Grid Grid.Row="0">
             <!-- This will be the screen -->
+            
+            <CollectionView ItemsSource="{Binding WordList}">
+                    <CollectionView.ItemsLayout>
+                            <LinearItemsLayout ItemSpacing="3"
+                                               Orientation="Horizontal"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Word">
+                                    <Border BackgroundColor="DarkRed"
+                                            StrokeShape="RoundRectangle 10">
+                                            <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.RemoveWordCommand}"
+                                                                          CommandParameter="{Binding Id}"></TapGestureRecognizer>
+                                            </Border.GestureRecognizers>
+                                            <HorizontalStackLayout Spacing="3"
+                                                                   Padding="3">
+                                                    <Label Text="{Binding Text}"
+                                                           FontSize="Title"
+                                                           TextColor="White"
+                                                           VerticalOptions="Center"
+                                                           VerticalTextAlignment="Center"/>
+                                                    <Label Text="❌"
+                                                           VerticalOptions="Center"
+                                                           VerticalTextAlignment="Center"></Label>
+                                            </HorizontalStackLayout>
+                                    </Border>
+                            </DataTemplate>
+                    </CollectionView.ItemTemplate>
+            </CollectionView>
+            
+            <Label HorizontalOptions="End"
+                   HorizontalTextAlignment="End"
+                   FontSize="Title"
+                   Padding="5"
+                   BackgroundColor="White"
+                   FontAttributes="Bold"
+                   Text="{Binding CurrentWord}"></Label>
         </Grid>
         
         <Grid Grid.Row="1"
@@ -25,24 +66,34 @@
                   ColumnDefinitions="*,*,*,*,*,*,*,*,*,*"
                   ColumnSpacing="2">
                 <Button Text="Q"
+                        Clicked="Button_OnClicked"
                         Grid.Column="0"/>
                 <Button Text="W"
+                        Clicked="Button_OnClicked"
                         Grid.Column="1"/>
                 <Button Text="E"
+                        Clicked="Button_OnClicked"
                         Grid.Column="2"/>
                 <Button Text="R"
+                        Clicked="Button_OnClicked"
                         Grid.Column="3"/>
                 <Button Text="T"
+                        Clicked="Button_OnClicked"
                         Grid.Column="4"/>
                 <Button Text="Y"
+                        Clicked="Button_OnClicked"
                         Grid.Column="5"/>
                 <Button Text="U"
+                        Clicked="Button_OnClicked"
                         Grid.Column="6"/>
                 <Button Text="I"
+                        Clicked="Button_OnClicked"
                         Grid.Column="7"/>
                 <Button Text="O"
+                        Clicked="Button_OnClicked"
                         Grid.Column="8"/>
                 <Button Text="P"
+                        Clicked="Button_OnClicked"
                         Grid.Column="9"/>
             </Grid>
             
@@ -52,22 +103,31 @@
                   ColumnDefinitions="*,*,*,*,*,*,*,*,*"
                   ColumnSpacing="2">
                 <Button Text="A"
+                        Clicked="Button_OnClicked"
                         Grid.Column="0"/>
                 <Button Text="S"
+                        Clicked="Button_OnClicked"
                         Grid.Column="1"/>
                 <Button Text="D"
+                        Clicked="Button_OnClicked"
                         Grid.Column="2"/>
                 <Button Text="F"
+                        Clicked="Button_OnClicked"
                         Grid.Column="3"/>
                 <Button Text="G"
+                        Clicked="Button_OnClicked"
                         Grid.Column="4"/>
                 <Button Text="H"
+                        Clicked="Button_OnClicked"
                         Grid.Column="5"/>
                 <Button Text="J"
+                        Clicked="Button_OnClicked"
                         Grid.Column="6"/>
                 <Button Text="K"
+                        Clicked="Button_OnClicked"
                         Grid.Column="7"/>
                 <Button Text="L"
+                        Clicked="Button_OnClicked"
                         Grid.Column="8"/>
             </Grid>
             
@@ -77,18 +137,25 @@
                   ColumnDefinitions="*,*,*,*,*,*,*"
                   ColumnSpacing="2">
                 <Button Text="Z"
+                        Clicked="Button_OnClicked"
                         Grid.Column="0"/>
                 <Button Text="X"
+                        Clicked="Button_OnClicked"
                         Grid.Column="1"/>
                 <Button Text="C"
+                        Clicked="Button_OnClicked"
                         Grid.Column="2"/>
                 <Button Text="V"
+                        Clicked="Button_OnClicked"
                         Grid.Column="3"/>
                 <Button Text="B"
+                        Clicked="Button_OnClicked"
                         Grid.Column="4"/>
                 <Button Text="N"
+                        Clicked="Button_OnClicked"
                         Grid.Column="5"/>
                 <Button Text="M"
+                        Clicked="Button_OnClicked"
                         Grid.Column="6"/>
             </Grid>
             
@@ -97,11 +164,14 @@
                   Padding="0"
                   ColumnDefinitions="*,3*,*"
                   ColumnSpacing="2">
-                <Button Text="Backspace"
+                <Button Text="🔙 DEL"
+                        Command="{Binding BackspacePressedCommand}"
                         Grid.Column="0"/>
                 <Button Text="Space"
+                        Command="{Binding SpacePressedCommand}"
                         Grid.Column="1"/>
-                <Button Text="Enter"
+                <Button Text="Speak 🗣️"
+                        Command="{Binding SpeakPressedCommand}"
                         Grid.Column="2"/>
             </Grid>
         </Grid>

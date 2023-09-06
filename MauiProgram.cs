@@ -19,6 +19,7 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddSingleton<MainViewModel>();
+		builder.Services.AddSingleton<MainPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();
