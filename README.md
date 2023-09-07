@@ -1,3 +1,6 @@
+<img src="https://github.com/matt-goldman/Trachytalk/assets/19944129/88cc4eeb-bdf5-4fdf-8abe-d44084ebd7d2" width="300"/>
+
+
 # Trachytalk
 
 Trachytalk is designed to help patients with a tracheostomy to communicate (or anyone who can't speak but can use a mobile device).
