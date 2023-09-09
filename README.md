@@ -10,3 +10,5 @@ I decided to build this because my mother is in critical care. Most mobile devic
 Trachytalk instead features an almost full screen keyboard with big letters and easily lets the patient review their phrase (and remove any unwanted words) before speaking it.
 
 It's pretty basic at the moment as I wanted to get a rapid prototype into my mum's hands as soon as possible, but I intend to update it with some additional features and stylingin the future.
+
+[![name](link to image on GH)](link to your URL)
