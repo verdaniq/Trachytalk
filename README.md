@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/Resources/Splash/splash.svg" width="100"/>
+<img src="https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/assets/logo.svg" width="100"/>
 
 
 # Trachytalk
@@ -11,4 +11,4 @@ Trachytalk instead features an almost full screen keyboard with big letters and 
 
 It's pretty basic at the moment as I wanted to get a rapid prototype into my mum's hands as soon as possible, but I intend to update it with some additional features and stylingin the future.
 
-[![name](link to image on GH)](link to your URL)
+[![App Store download link](https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/assets/app-store.svg)](https://apps.apple.com/app/trachytalk/id6464598555)
