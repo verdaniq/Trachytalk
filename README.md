@@ -1,4 +1,4 @@
-<img src="https://github.com/matt-goldman/Trachytalk/assets/19944129/88cc4eeb-bdf5-4fdf-8abe-d44084ebd7d2" width="300"/>
+<img src="https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/Resources/Splash/splash.svg" width="100"/>
 
 
 # Trachytalk
