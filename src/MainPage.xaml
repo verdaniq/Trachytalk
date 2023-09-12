@@ -48,7 +48,7 @@
                    HorizontalTextAlignment="End"
                    FontSize="Title"
                    Padding="5"
-                   BackgroundColor="White"
+                   BackgroundColor="{AppThemeBinding Light={DynamicResource White}, Dark={DynamicResource Black}}"
                    FontAttributes="Bold"
                    Text="{Binding CurrentWord}"></Label>
         </Grid>
