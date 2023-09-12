@@ -11,4 +11,12 @@ Trachytalk instead features an almost full screen keyboard with big letters and 
 
 It's pretty basic at the moment as I wanted to get a rapid prototype into my mum's hands as soon as possible, but I intend to update it with some additional features and stylingin the future.
 
-[![App Store download link](https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/assets/app-store.svg)](https://apps.apple.com/app/trachytalk/id6464598555)
+<div style="display:flex; align-items:middle;">
+  <a href='https://apps.apple.com/app/trachytalk/id6464598555'>
+    <img src='https://raw.githubusercontent.com/matt-goldman/Trachytalk/main/assets/app-store.svg' alt='Get it on the App Store' Height="75"/>
+  </a>
+  &nbsp;&nbsp;
+  <a href='https://play.google.com/store/apps/details?id=com.goforgoldman.trachytalk&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
+    <img alt='Get it on Google Play' src='https://github.com/matt-goldman/Trachytalk/assets/19944129/c32b1f1a-4771-483c-bf2e-546e3b757104' Height="75"/>
+  </a>
+</div>
