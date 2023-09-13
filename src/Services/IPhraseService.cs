@@ -1,7 +1,8 @@
 ﻿namespace Trachytalk.Services;
 
-internal interface IPhraseService
+public interface IPhraseService
 {
     Task PhraseSelected(List<string> phrase);
-    Task WordAdded(string inputText);
+    Task<List<string>> GetSuggestions(List<string> phrase);
+    Task<List<string>> GetSuggestions(string inputText);
 }

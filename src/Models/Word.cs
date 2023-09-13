@@ -10,4 +10,9 @@ public class Word
     {
         this.Text = word;
     }
+
+    public Word()
+    {
+        
+    }
 }

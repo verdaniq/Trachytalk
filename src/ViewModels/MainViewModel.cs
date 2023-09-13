@@ -2,15 +2,22 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Trachytalk.Models;
+using Trachytalk.Services;
 
 namespace Trachytalk.ViewModels;
 
-[INotifyPropertyChanged]
-public partial class MainViewModel
+public partial class MainViewModel : ObservableObject
 {
     [ObservableProperty] private string currentWord;
 
     public ObservableCollection<Word> WordList { get; set; } = new();
+    
+    public IPhraseService _phraseService { get; }
+
+    public MainViewModel(IPhraseService phraseService)
+    {
+        _phraseService = phraseService;
+    }
 
     [RelayCommand]
     public void LetterPressed(string letter)
