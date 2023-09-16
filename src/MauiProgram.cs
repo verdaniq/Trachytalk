@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using Trachytalk.Data;
+using Trachytalk.Services;
 using Trachytalk.ViewModels;
 
 namespace Trachytalk;
@@ -18,7 +20,10 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
-		builder.Services.AddSingleton<MainViewModel>();
+		builder.Services.AddSingleton<Database>();
+        builder.Services.AddSingleton<IPhraseService, PhraseService>();
+
+        builder.Services.AddSingleton<MainViewModel>();
 		builder.Services.AddSingleton<MainPage>();
 
 #if DEBUG
