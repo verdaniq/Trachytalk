@@ -12,8 +12,7 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<Word> WordList { get; set; } = new();
 
-    public ObservableCollection<string> SuggestedWords { get; set; } = new();
-    public ObservableCollection<string> SuggestedPhrases { get; set; } = new();
+    public ObservableCollection<string> Suggestions { get; set; } = new();
 
     public IPhraseService _phraseService { get; }
 
@@ -49,7 +48,7 @@ public partial class MainViewModel : ObservableObject
     {
         WordList.Add(new Word(CurrentWord));
         CurrentWord = "";
-        SuggestedWords.Clear();
+        Suggestions.Clear();
 
         await UpdatePhraseSuggestions();
     }
@@ -86,8 +85,7 @@ public partial class MainViewModel : ObservableObject
 
         // clear the word list
         WordList.Clear();
-        SuggestedWords.Clear();
-        SuggestedPhrases.Clear();
+        Suggestions.Clear();
     }
 
     [RelayCommand]
@@ -104,11 +102,11 @@ public partial class MainViewModel : ObservableObject
     {
         var suggestions = await _phraseService.GetSuggestions(CurrentWord);
 
-        SuggestedWords.Clear();
+        Suggestions.Clear();
 
         foreach (var suggestion in suggestions)
         {
-            SuggestedWords.Add(suggestion);
+            Suggestions.Add(suggestion);
         }
     }
 
@@ -117,11 +115,11 @@ public partial class MainViewModel : ObservableObject
         var phrase = WordList.Select(w => w.Text).ToList();
         var suggestions = await _phraseService.GetSuggestions(phrase);
 
-        SuggestedPhrases.Clear();
+        Suggestions.Clear();
 
         foreach (var suggestion in suggestions)
         {
-            SuggestedPhrases.Add(suggestion);
+            Suggestions.Add(suggestion);
         }
     }
 }
