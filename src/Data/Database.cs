@@ -33,6 +33,8 @@ public class Database
         _database = new SQLiteAsyncConnection(DatabasePath, Flags);
         
         var result = await _database.CreateTableAsync<TextEntry>();
+
+        IsInitialized = true;
     }
 
     public async Task<IEnumerable<TextEntry>> GetPhrases()
@@ -47,7 +49,7 @@ public class Database
         await Initialize();
 
         return await _database.Table<TextEntry>()
-            .Where(p => p.Text.StartsWith(text) && !p.IsPhrase)
+            .Where(p => p.Text.StartsWith(text.ToLower()) && !p.IsPhrase)
             .OrderByDescending(p => p.Count)
             .ToListAsync();
     }
@@ -57,7 +59,7 @@ public class Database
         await Initialize();
 
         return await _database.Table<TextEntry>()
-            .Where(p => p.Text.StartsWith(text) && p.IsPhrase == true)
+            .Where(p => p.Text.StartsWith(text.ToLower()) && p.IsPhrase == true)
             .OrderByDescending(p => p.Count)
             .ToListAsync();
     }
@@ -69,13 +71,13 @@ public class Database
         var isPhrase = text.Contains(" ");
 
         var entry = await _database.Table<TextEntry>()
-            .FirstOrDefaultAsync(p => p.Text == text);
+            .FirstOrDefaultAsync(p => p.Text == text.ToLower());
 
         if (entry is null)
         {
             entry = new TextEntry
             {
-                Text = text,
+                Text = text.ToLower(),
                 IsPhrase = isPhrase,
                 Count = 1
             };
