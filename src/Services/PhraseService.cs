@@ -11,23 +11,21 @@ public class PhraseService : IPhraseService
         _database = database;
     }
     
-    public List<string> GetSuggestions(List<string> phrase)
+    public string GetPhraseSuggestions(List<string> phrase)
     {
         var searchText = string.Join(" ", phrase);
 
-        var suggestions = _database.GetMatchingPhrases(searchText);
+        var suggestion = _database.GetTopPhrase(searchText);
 
-        var results = new List<string>();
-
-        foreach (var suggestion in suggestions)
+        if (suggestion is not null)
         {
-            results.Add(suggestion.Text);
+            return suggestion.Text;
         }
 
-        return results;
+        return string.Empty;
     }
 
-    public List<string> GetSuggestions(string inputText)
+    public List<string> GetWordSuggestions(string inputText)
     {
         var suggestions = _database.GetMatchingWords(inputText);
 

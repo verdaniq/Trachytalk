@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using Trachytalk.Models;
 using Trachytalk.Services;
 
@@ -18,6 +17,9 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<string> Suggestions { get; set; } = new();
 
     public IPhraseService _phraseService { get; }
+
+    private string _suggestedPhrase = string.Empty;
+    private List<string> _suggestedWords = new();
     
     
     public MainViewModel(IPhraseService phraseService)
@@ -67,7 +69,7 @@ public partial class MainViewModel : ObservableObject
             phrase += $"{word.Text} ";
         }
         
-        await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
+        //await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
         Observable.FromAsync(() => Task.Run(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList())))
             .SubscribeOn(TaskPoolScheduler.Default)
@@ -84,25 +86,26 @@ public partial class MainViewModel : ObservableObject
         {
             var word = WordList.FirstOrDefault(w => w.Id == id);
             WordList.Remove(word);
+            UpdatePhraseSuggestions();
         }
+    }
+
+    [RelayCommand]
+    private void SuggestionTapped(string suggestion)
+    {
+
     }
 
     private void UpdateWordSuggestions()
     {
-        Observable.FromAsync(() => Task.Run(() => _phraseService.GetSuggestions(CurrentWord)))
+        Observable.FromAsync(() => Task.Run(() => _phraseService.GetWordSuggestions(CurrentWord)))
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
             .Subscribe(suggestions =>
             {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Suggestions.Clear();
-
-                    foreach (var suggestion in suggestions)
-                    {
-                        Suggestions.Add(suggestion);
-                    }
-                });
+                _suggestedWords.Clear();
+                _suggestedWords.AddRange(suggestions);
+                UpdateSuggestionsList();
             });
     }
 
@@ -110,20 +113,31 @@ public partial class MainViewModel : ObservableObject
     {
         var phrase = WordList.Select(w => w.Text).ToList();
 
-        Observable.FromAsync(() => Task.Run(() => _phraseService.GetSuggestions(phrase)))
+        Observable.FromAsync(() => Task.Run(() => _phraseService.GetPhraseSuggestions(phrase)))
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestions =>
+            .Subscribe(suggestion =>
             {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    Suggestions.Clear();
-
-                    foreach (var suggestion in suggestions)
-                    {
-                        Suggestions.Add(suggestion);
-                    }
-                });
+                _suggestedPhrase = suggestion;
+                UpdateSuggestionsList();
             });
+    }
+
+    private void UpdateSuggestionsList()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            Suggestions.Clear();
+
+            if (!string.IsNullOrWhiteSpace(_suggestedPhrase))
+            {
+                Suggestions.Add(_suggestedPhrase);
+            }
+
+            foreach (var suggestion in _suggestedWords)
+            {
+                Suggestions.Add(suggestion);
+            }
+        });    
     }
 }

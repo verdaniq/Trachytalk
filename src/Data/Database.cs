@@ -46,6 +46,20 @@ public class Database
         return results;
     }
 
+    public TextEntry GetTopPhrase(string text)
+    {
+        using var db = new LiteDatabase(DatabasePath);
+
+        var collection = db.GetCollection<TextEntry>("TextEntries");
+
+        var result = collection.Query()
+            .Where(e => e.Text.StartsWith(text.ToLower()) && e.IsPhrase)
+            .OrderByDescending(e => e.Count)
+            .FirstOrDefault();
+
+        return result;
+    }
+
     public void AddOrUpdateEntry(string text)
     {
         var isPhrase = text.Contains(" ");

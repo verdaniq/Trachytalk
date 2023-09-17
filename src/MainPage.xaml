@@ -31,6 +31,7 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Word">
                                 <Border BackgroundColor="{StaticResource TileBackground}"
+                                        Padding="0"
                                         StrokeShape="RoundRectangle 8">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.RemoveWordCommand}"
@@ -45,8 +46,11 @@
                                                VerticalOptions="Center"
                                                VerticalTextAlignment="Center"/>
                                         <Label Text="X"
+                                               TextColor="White"
                                                Background="{StaticResource DeleteBackground}"
-                                               VerticalOptions="Center"
+                                               VerticalOptions="Fill"
+                                               Margin="0"
+                                               HorizontalOptions="End"
                                                VerticalTextAlignment="Center"></Label>
                                     </HorizontalStackLayout>
                                 </Border>
@@ -62,20 +66,60 @@
                            Text="{Binding CurrentWord}"></Label>
                 </HorizontalStackLayout>
 
-                <Button Grid.Column="1"
-                        Command="{Binding SpeakPressedCommand}"
+                <Border Grid.Column="1"
+                        StrokeShape="RoundRectangle 0,8,0,8"
+                        Background="{DynamicResource Primary}"
+                        Stroke="{DynamicResource Primary}"
                         MinimumWidthRequest="85"
                         VerticalOptions="Fill"
                         HorizontalOptions="Center"
-                        TextColor="White"
-                        FontSize="32"
                         Margin="0"
-                        Text="🔊"/>
+                        Padding="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="1" Command="{Binding SpeakPressedCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label TextColor="White"
+                           InputTransparent="True"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           VerticalOptions="Center"
+                           VerticalTextAlignment="Center"
+                           Margin="0"
+                           FontSize="32"
+                           Text="🔊"/>
+                </Border>
             </Grid>
         </Border>
 
         <Grid Grid.Row="0">
             <!-- This will be the suggestions -->
+            <CollectionView ItemsSource="{Binding Suggestions}"
+                            MinimumWidthRequest="2">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="3"
+                                       Orientation="Horizontal"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Word">
+                        <Border BackgroundColor="{StaticResource TileBackground}"
+                                StrokeShape="RoundRectangle 8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.SuggestionTappedCommand}"
+                                                      CommandParameter="{Binding Text}"></TapGestureRecognizer>
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="5"
+                                                   Padding="5">
+                                <Label Text="{Binding Text}"
+                                       FontSize="Title"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       VerticalOptions="Center"
+                                       VerticalTextAlignment="Center"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
         
         <Grid Grid.Row="2"
