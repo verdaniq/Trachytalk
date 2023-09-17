@@ -1,77 +1,62 @@
-﻿using SQLite;
+﻿using LiteDB;
 
 namespace Trachytalk.Data;
 
 public class Database
 {
-    private const string DatabaseFilename = "Trachytalk.db3";
-
-    private const SQLite.SQLiteOpenFlags Flags =
-        // open the database in read/write mode
-        SQLite.SQLiteOpenFlags.ReadWrite |
-        // create the database if it doesn't exist
-        SQLite.SQLiteOpenFlags.Create |
-        // enable multi-threaded database access
-        SQLite.SQLiteOpenFlags.SharedCache;
-
+    private const string DatabaseFilename = "Trachytalk.db";
+    
     private static string DatabasePath =>
-        Path.Combine(FileSystem.AppDataDirectory, DatabaseFilename);
-
-    private SQLiteAsyncConnection _database;
-
-    private bool IsInitialized { get; set; }
-
-    public async Task Initialize()
+    Path.Combine(FileSystem.AppDataDirectory, DatabaseFilename);
+    
+    public IEnumerable<TextEntry> GetPhrases()
     {
-        if (IsInitialized || _database is not null)
-        {
-            return;
-        }
+        using var db = new LiteDatabase(DatabasePath);
 
-        SQLitePCL.Batteries_V2.Init();
+        var collection = db.GetCollection<TextEntry>("TextEntries");
 
-        _database = new SQLiteAsyncConnection(DatabasePath, Flags);
-        
-        var result = await _database.CreateTableAsync<TextEntry>();
-
-        IsInitialized = true;
+        return collection.FindAll();
     }
 
-    public async Task<IEnumerable<TextEntry>> GetPhrases()
+    public IEnumerable<TextEntry> GetMatchingWords(string text)
     {
-        await Initialize();
+        using var db = new LiteDatabase(DatabasePath);
 
-        return await _database.Table<TextEntry>().ToListAsync();
+        var collection = db.GetCollection<TextEntry>("TextEntries");
+
+        var results = collection.Query()
+            .Where(e => e.Text.StartsWith(text.ToLower()) && !e.IsPhrase)
+            .OrderByDescending(e => e.Count)
+            .ToList();
+
+        return results;
     }
 
-    public async Task<IEnumerable<TextEntry>> GetMatchingWords(string text)
+    public IEnumerable<TextEntry> GetMatchingPhrases(string text)
     {
-        await Initialize();
+        using var db = new LiteDatabase(DatabasePath);
 
-        return await _database.Table<TextEntry>()
-            .Where(p => p.Text.StartsWith(text.ToLower()) && !p.IsPhrase)
-            .OrderByDescending(p => p.Count)
-            .ToListAsync();
+        var collection = db.GetCollection<TextEntry>("TextEntries");
+
+        var results = collection.Query()
+            .Where(e => e.Text.StartsWith(text.ToLower()) && e.IsPhrase)
+            .OrderByDescending(e => e.Count)
+            .ToList();
+
+        return results;
     }
 
-    public async Task<IEnumerable<TextEntry>> GetMatchingPhrases(string text)
+    public void AddOrUpdateEntry(string text)
     {
-        await Initialize();
-
-        return await _database.Table<TextEntry>()
-            .Where(p => p.Text.StartsWith(text.ToLower()) && p.IsPhrase == true)
-            .OrderByDescending(p => p.Count)
-            .ToListAsync();
-    }
-
-    public async Task AddOrUpdateEntry(string text)
-    {
-        await Initialize();
-        
         var isPhrase = text.Contains(" ");
 
-        var entry = await _database.Table<TextEntry>()
-            .FirstOrDefaultAsync(p => p.Text == text.ToLower());
+        using var db = new LiteDatabase(DatabasePath);
+        
+        var collection = db.GetCollection<TextEntry>("TextEntries");
+        
+        var entry = collection.Query()
+            .Where(e => e.Text == text.ToLower())
+            .FirstOrDefault();
 
         if (entry is null)
         {
@@ -81,14 +66,13 @@ public class Database
                 IsPhrase = isPhrase,
                 Count = 1
             };
-
-            await _database.InsertAsync(entry);
         }
         else
         {
             entry.Count++;
-            await _database.UpdateAsync(entry);
         }
+
+        collection.Upsert(entry);
     }
 }
     

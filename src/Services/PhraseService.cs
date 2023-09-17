@@ -11,11 +11,11 @@ public class PhraseService : IPhraseService
         _database = database;
     }
     
-    public async Task<List<string>> GetSuggestions(List<string> phrase)
+    public List<string> GetSuggestions(List<string> phrase)
     {
         var searchText = string.Join(" ", phrase);
 
-        var suggestions = await _database.GetMatchingPhrases(searchText);
+        var suggestions = _database.GetMatchingPhrases(searchText);
 
         var results = new List<string>();
 
@@ -27,9 +27,9 @@ public class PhraseService : IPhraseService
         return results;
     }
 
-    public async Task<List<string>> GetSuggestions(string inputText)
+    public List<string> GetSuggestions(string inputText)
     {
-        var suggestions = await _database.GetMatchingWords(inputText);
+        var suggestions = _database.GetMatchingWords(inputText);
 
         var results = new List<string>();
 
@@ -41,10 +41,10 @@ public class PhraseService : IPhraseService
         return results;
     }
 
-    public async Task PhraseSelected(List<string> phrase)
+    public void PhraseSelected(List<string> phrase)
     {
         var inputText = string.Join(" ", phrase);
 
-        await _database.AddOrUpdateEntry(inputText);
+        _database.AddOrUpdateEntry(inputText);
     }
 }

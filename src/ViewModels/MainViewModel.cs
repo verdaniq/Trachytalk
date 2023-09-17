@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Trachytalk.Models;
 using Trachytalk.Services;
 
@@ -15,9 +18,8 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<string> Suggestions { get; set; } = new();
 
     public IPhraseService _phraseService { get; }
-
-    private CancellationTokenSource _cts;
-
+    
+    
     public MainViewModel(IPhraseService phraseService)
     {
         _phraseService = phraseService;
@@ -27,30 +29,18 @@ public partial class MainViewModel : ObservableObject
     public void LetterPressed(string letter)
     {
         CurrentWord = $"{CurrentWord}{letter}";
-        
-        if (_cts != null)
-        {
-            _cts.Cancel();
-            _cts.Dispose();
-        }
 
-        _cts = new CancellationTokenSource();
-
-        Task.Delay(500, _cts.Token)
-            .ContinueWith(async _ =>
-            {
-                await UpdateWordSuggestions();
-            });
+        UpdateWordSuggestions();
     }
     
     [RelayCommand]
-    private async Task SpacePressed()
+    private void SpacePressed()
     {
         WordList.Add(new Word(CurrentWord));
         CurrentWord = "";
         Suggestions.Clear();
 
-        await UpdatePhraseSuggestions();
+        UpdatePhraseSuggestions();
     }
     
     [RelayCommand]
@@ -65,7 +55,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        //Add the current word
         if (CurrentWord.Length > 0)
         {
             WordList.Add(new Word(CurrentWord));
@@ -73,7 +62,6 @@ public partial class MainViewModel : ObservableObject
 
         string phrase = string.Empty;
         
-        // speak the current word list using the TextToSpeech API in Essentials
         foreach (var word in WordList)
         {
             phrase += $"{word.Text} ";
@@ -81,9 +69,10 @@ public partial class MainViewModel : ObservableObject
         
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
-        await _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+        Observable.FromAsync(() => Task.Run(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList())))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .Subscribe();
 
-        // clear the word list
         WordList.Clear();
         Suggestions.Clear();
     }
@@ -98,28 +87,43 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private async Task UpdateWordSuggestions()
+    private void UpdateWordSuggestions()
     {
-        var suggestions = await _phraseService.GetSuggestions(CurrentWord);
+        Observable.FromAsync(() => Task.Run(() => _phraseService.GetSuggestions(CurrentWord)))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestions =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    Suggestions.Clear();
 
-        Suggestions.Clear();
-
-        foreach (var suggestion in suggestions)
-        {
-            Suggestions.Add(suggestion);
-        }
+                    foreach (var suggestion in suggestions)
+                    {
+                        Suggestions.Add(suggestion);
+                    }
+                });
+            });
     }
 
-    private async Task UpdatePhraseSuggestions()
+    private void UpdatePhraseSuggestions()
     {
         var phrase = WordList.Select(w => w.Text).ToList();
-        var suggestions = await _phraseService.GetSuggestions(phrase);
 
-        Suggestions.Clear();
+        Observable.FromAsync(() => Task.Run(() => _phraseService.GetSuggestions(phrase)))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestions =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    Suggestions.Clear();
 
-        foreach (var suggestion in suggestions)
-        {
-            Suggestions.Add(suggestion);
-        }
+                    foreach (var suggestion in suggestions)
+                    {
+                        Suggestions.Add(suggestion);
+                    }
+                });
+            });
     }
 }
