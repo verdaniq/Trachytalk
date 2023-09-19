@@ -20,6 +20,11 @@ public class Database
 
     public IEnumerable<TextEntry> GetMatchingWords(string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return new List<TextEntry>();
+        }
+
         using var db = new LiteDatabase(DatabasePath);
 
         var collection = db.GetCollection<TextEntry>("TextEntries");
@@ -48,6 +53,11 @@ public class Database
 
     public TextEntry GetTopPhrase(string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
         using var db = new LiteDatabase(DatabasePath);
 
         var collection = db.GetCollection<TextEntry>("TextEntries");

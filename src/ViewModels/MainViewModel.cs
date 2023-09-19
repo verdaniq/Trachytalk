@@ -52,6 +52,13 @@ public partial class MainViewModel : ObservableObject
         {
             CurrentWord = CurrentWord.Substring(0, CurrentWord.Length - 1);
         }
+
+        UpdateWordSuggestions();
+
+        if (CurrentWord.Length == 0)
+        {
+            UpdatePhraseSuggestions();
+        }
     }
 
     [RelayCommand]
@@ -93,7 +100,30 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void SuggestionTapped(string suggestion)
     {
+        if (string.IsNullOrWhiteSpace(suggestion))
+        {
+            return;
+        }
 
+        if (suggestion.Contains(' '))
+        {
+            var words = suggestion.Split(' ');
+            
+            WordList.Clear();
+            
+            foreach (var word in words)
+            {
+                WordList.Add(new Word(word));
+            }
+        }
+        else
+        {
+            CurrentWord = suggestion;
+        }
+
+        _suggestedPhrase = string.Empty;
+        _suggestedWords.Clear();
+        Suggestions.Clear();
     }
 
     private void UpdateWordSuggestions()
@@ -132,6 +162,10 @@ public partial class MainViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(_suggestedPhrase))
             {
                 Suggestions.Add(_suggestedPhrase);
+            }
+            else
+            {
+                _suggestedPhrase = string.Empty;
             }
 
             foreach (var suggestion in _suggestedWords)
