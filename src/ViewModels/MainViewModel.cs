@@ -32,6 +32,7 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentWord = $"{CurrentWord}{letter}";
 
+        UpdatePhraseSuggestions();
         UpdateWordSuggestions();
     }
     
@@ -142,6 +143,11 @@ public partial class MainViewModel : ObservableObject
     private void UpdatePhraseSuggestions()
     {
         var phrase = WordList.Select(w => w.Text).ToList();
+
+        if (!string.IsNullOrEmpty(CurrentWord))
+        {
+            phrase.Add(CurrentWord); 
+        }
 
         Observable.Start(() => _phraseService.GetPhraseSuggestions(phrase))
             .SubscribeOn(TaskPoolScheduler.Default)
