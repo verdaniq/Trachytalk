@@ -43,6 +43,11 @@ public class PhraseService : IPhraseService
     {
         var inputText = string.Join(" ", phrase);
 
+        foreach (var word in phrase)
+        {
+            _database.AddOrUpdateEntry(word);
+        }
+
         _database.AddOrUpdateEntry(inputText);
     }
 }

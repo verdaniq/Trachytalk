@@ -71,7 +71,7 @@ public partial class MainViewModel : ObservableObject
         
         //await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
-        Observable.FromAsync(() => Task.Run(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList())))
+        Observable.Start(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList()))
             .SubscribeOn(TaskPoolScheduler.Default)
             .Subscribe();
 
@@ -98,7 +98,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateWordSuggestions()
     {
-        Observable.FromAsync(() => Task.Run(() => _phraseService.GetWordSuggestions(CurrentWord)))
+        Observable.Start(() => _phraseService.GetWordSuggestions(CurrentWord))
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
             .Subscribe(suggestions =>
@@ -113,7 +113,7 @@ public partial class MainViewModel : ObservableObject
     {
         var phrase = WordList.Select(w => w.Text).ToList();
 
-        Observable.FromAsync(() => Task.Run(() => _phraseService.GetPhraseSuggestions(phrase)))
+        Observable.Start(() => _phraseService.GetPhraseSuggestions(phrase))
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
             .Subscribe(suggestion =>

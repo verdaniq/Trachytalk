@@ -14,6 +14,12 @@
           RowSpacing="2">
 
         <Border Grid.Row="0"
+                Grid.RowSpan="2"
+                StrokeShape="RoundRectangle 8"
+                StrokeThickness="2"
+                BackgroundColor="Black"
+                Stroke="{DynamicResource Black}"></Border>
+        <Border Grid.Row="0"
                 StrokeShape="RoundRectangle 8"
                 StrokeThickness="2"
                 Stroke="{DynamicResource Primary}">
@@ -91,10 +97,14 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="1"
+              Margin="5,2"
+              Padding="0,0,0,5"
+              HorizontalOptions="StartAndExpand">
             <!-- This will be the suggestions -->
             <CollectionView ItemsSource="{Binding Suggestions}"
-                            MinimumWidthRequest="2">
+                            MinimumWidthRequest="200"
+                            HorizontalOptions="FillAndExpand">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout ItemSpacing="3"
                                        Orientation="Horizontal"/>
@@ -109,7 +119,7 @@
                             </Border.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5"
                                                    Padding="5">
-                                <Label Text="{Binding Text}"
+                                <Label Text="{Binding .}"
                                        FontSize="Title"
                                        FontAttributes="Bold"
                                        TextColor="White"
