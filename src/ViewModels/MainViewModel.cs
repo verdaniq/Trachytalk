@@ -77,7 +77,7 @@ public partial class MainViewModel : ObservableObject
             phrase += $"{word.Text} ";
         }
         
-        //await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
+        await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
         Observable.Start(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList()))
             .SubscribeOn(TaskPoolScheduler.Default)
