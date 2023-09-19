@@ -83,6 +83,7 @@ public partial class MainViewModel : ObservableObject
             .SubscribeOn(TaskPoolScheduler.Default)
             .Subscribe();
 
+        CurrentWord = string.Empty;
         WordList.Clear();
         Suggestions.Clear();
     }
@@ -116,10 +117,12 @@ public partial class MainViewModel : ObservableObject
             {
                 WordList.Add(new Word(word));
             }
+            CurrentWord = string.Empty;
         }
         else
         {
             CurrentWord = suggestion;
+            SpacePressed();
         }
 
         _suggestedPhrase = string.Empty;

@@ -115,7 +115,7 @@
                                 StrokeShape="RoundRectangle 8">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.SuggestionTappedCommand}"
-                                                      CommandParameter="{Binding Text}"></TapGestureRecognizer>
+                                                      CommandParameter="{Binding .}"></TapGestureRecognizer>
                             </Border.GestureRecognizers>
                             <HorizontalStackLayout Spacing="5"
                                                    Padding="5">
