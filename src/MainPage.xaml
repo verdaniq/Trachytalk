@@ -52,8 +52,7 @@
                                                VerticalOptions="Center"
                                                VerticalTextAlignment="Center"/>
                                         <Label Text="X"
-                                               TextColor="White"
-                                               Background="{StaticResource DeleteBackground}"
+                                               TextColor="{StaticResource DeleteBackground}"
                                                VerticalOptions="Fill"
                                                Margin="0"
                                                HorizontalOptions="End"
@@ -112,6 +111,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Word">
                         <Border BackgroundColor="{StaticResource TileBackground}"
+                                Stroke="{StaticResource TileBackground}"
                                 StrokeShape="RoundRectangle 8">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.SuggestionTappedCommand}"
