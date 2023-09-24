@@ -30,6 +30,9 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
+	  <CreatePackage>false</CreatePackage>
+	</PropertyGroup>
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -51,6 +54,7 @@
 	<ItemGroup>
 	  <None Remove="Resources\Fonts\Montserrat-ExtraBold.ttf" />
 	  <None Remove="Resources\Fonts\Montserrat-VariableFont_wght.ttf" />
+	  <None Remove="Selectors\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -61,4 +65,7 @@
 		<PackageReference Include="System.Reactive" Version="6.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Selectors\" />
+	</ItemGroup>
 </Project>

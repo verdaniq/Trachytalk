@@ -32,6 +32,14 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentWord = $"{CurrentWord}{letter}";
 
+        if (WordList.Any(w => w.IsCurrentWord))
+        {
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
+        }
+        
+        WordList.Add(new Word(CurrentWord, true));
+
         UpdatePhraseSuggestions();
         UpdateWordSuggestions();
     }
@@ -39,6 +47,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void SpacePressed()
     {
+        if (WordList.Any(w => w.IsCurrentWord))
+        {
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
+        }
+
         WordList.Add(new Word(CurrentWord));
         CurrentWord = "";
         Suggestions.Clear();
