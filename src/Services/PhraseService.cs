@@ -33,7 +33,10 @@ public class PhraseService : IPhraseService
 
         foreach (var suggestion in suggestions)
         {
-            results.Add(suggestion.Text);
+            if (!string.IsNullOrEmpty(suggestion?.Text))
+            {
+                results.Add(suggestion.Text);
+            }
         }
 
         return results;

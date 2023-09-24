@@ -177,7 +177,9 @@ public partial class MainViewModel : ObservableObject
                 _suggestedPhrase = string.Empty;
             }
 
-            foreach (var suggestion in _suggestedWords)
+            var wordsCopy = _suggestedWords.ToList();
+
+            foreach (var suggestion in wordsCopy)
             {
                 Suggestions.Add(suggestion);
             }
