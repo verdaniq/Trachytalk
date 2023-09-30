@@ -20,8 +20,8 @@ public partial class MainViewModel : ObservableObject
 
     private string _suggestedPhrase = string.Empty;
     private List<string> _suggestedWords = new();
-    
-    
+
+
     public MainViewModel(IPhraseService phraseService)
     {
         _phraseService = phraseService;
@@ -37,29 +37,32 @@ public partial class MainViewModel : ObservableObject
             var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
             WordList.Remove(word);
         }
-        
+
         WordList.Add(new Word(CurrentWord, true));
 
         UpdatePhraseSuggestions();
         UpdateWordSuggestions();
     }
-    
+
     [RelayCommand]
     private void SpacePressed()
     {
-        if (WordList.Any(w => w.IsCurrentWord))
+        if (!string.IsNullOrWhiteSpace(CurrentWord))
         {
-            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
-            WordList.Remove(word);
+            if (WordList.Any(w => w.IsCurrentWord))
+            {
+                var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+                WordList.Remove(word);
+            }
+
+            WordList.Add(new Word(CurrentWord));
+            CurrentWord = "";
+            Suggestions.Clear();
+
+            UpdatePhraseSuggestions();
         }
-
-        WordList.Add(new Word(CurrentWord));
-        CurrentWord = "";
-        Suggestions.Clear();
-
-        UpdatePhraseSuggestions();
     }
-    
+
     [RelayCommand]
     private void BackspacePressed()
     {
@@ -79,18 +82,13 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        if (CurrentWord.Length > 0)
-        {
-            WordList.Add(new Word(CurrentWord));
-        }
-
         string phrase = string.Empty;
-        
+
         foreach (var word in WordList)
         {
             phrase += $"{word.Text} ";
         }
-        
+
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
         Observable.Start(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList()))
@@ -124,9 +122,9 @@ public partial class MainViewModel : ObservableObject
         if (suggestion.Contains(' '))
         {
             var words = suggestion.Split(' ');
-            
+
             WordList.Clear();
-            
+
             foreach (var word in words)
             {
                 WordList.Add(new Word(word));
@@ -163,7 +161,7 @@ public partial class MainViewModel : ObservableObject
 
         if (!string.IsNullOrEmpty(CurrentWord))
         {
-            phrase.Add(CurrentWord); 
+            phrase.Add(CurrentWord);
         }
 
         Observable.Start(() => _phraseService.GetPhraseSuggestions(phrase))
@@ -197,6 +195,6 @@ public partial class MainViewModel : ObservableObject
             {
                 Suggestions.Add(suggestion);
             }
-        });    
+        });
     }
 }

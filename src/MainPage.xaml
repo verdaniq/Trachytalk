@@ -34,13 +34,13 @@
                         </HorizontalStackLayout>
                     </Border>
                 </DataTemplate>
-                    
+
                 <DataTemplate x:Key="CurrentWordTemplate"
                               x:DataType="models:Word">
                     <Label FontSize="Title"
                            Padding="5"
-                           BackgroundColor="{AppThemeBinding Light={DynamicResource White}, Dark={DynamicResource Black}}"
-                           TextColor="{AppThemeBinding Light={DynamicResource Black}, Dark={DynamicResource White}}"
+                           BackgroundColor="{StaticResource Black}"
+                           TextColor="{StaticResource White}"
                            MinimumWidthRequest="100"
                            FontAttributes="Bold"
                            Text="{Binding Text}"></Label>
@@ -49,7 +49,7 @@
                                                 WordTemplate="{StaticResource WordTemplate}"
                                                 CurrentWordTemplate="{StaticResource CurrentWordTemplate}"/>
         </ContentPage.Resources>
-    
+
         <Grid RowDefinitions="7*,7*, 25*"
               Padding="2"
               Margin="2"
@@ -83,7 +83,7 @@
                         </CollectionView.ItemsLayout>
                     </CollectionView>
 
-                    
+
                 </HorizontalStackLayout>
 
                 <Border Grid.Column="1"
@@ -104,9 +104,11 @@
                            HorizontalTextAlignment="Center"
                            VerticalOptions="Center"
                            VerticalTextAlignment="Center"
+                           FontFamily="FontAwesomeSolid"
+                           FontAttributes="Bold"
                            Margin="0"
                            FontSize="32"
-                           Text="🔊"/>
+                           Text="&#xf029;"/>
                 </Border>
             </Grid>
         </Border>
@@ -146,7 +148,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Grid>
-        
+
         <Grid Grid.Row="2"
               Margin="0,5,0,10"
               Padding="0"
@@ -232,11 +234,12 @@
                     Clicked="Button_OnClicked"
                     Grid.Row="1"
                     Grid.Column="8"/>
-            <Button Text="← DEL"
+            <Button Text="&#x232b;"
+                    FontFamily="FontAwesomeSolid"
                     Command="{Binding BackspacePressedCommand}"
                     Grid.Row="1"
                     Grid.Column="9"/>
-            
+
 
             <Button Text="Z"
                     Clicked="Button_OnClicked"
@@ -272,7 +275,7 @@
                     Grid.Column="7"
                     Grid.ColumnSpan="3"
                     Command="{Binding SpacePressedCommand}"/>
-            
+
         </Grid>
     </Grid>
 
