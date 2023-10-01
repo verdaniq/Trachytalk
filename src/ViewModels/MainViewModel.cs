@@ -71,6 +71,14 @@ public partial class MainViewModel : ObservableObject
             CurrentWord = CurrentWord.Substring(0, CurrentWord.Length - 1);
         }
 
+        if (WordList.Any(w => w.IsCurrentWord))
+        {
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
+        }
+
+        WordList.Add(new Word(CurrentWord, true));
+
         UpdateWordSuggestions();
 
         if (CurrentWord.Length == 0)
