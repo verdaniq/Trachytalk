@@ -21,6 +21,7 @@ public static class MauiProgram
                 fonts.AddFont("Montserrat-VariableFont_wght.ttf", "Montserrat");
                 fonts.AddFont("Montserrat-ExtraBold.ttf", "MontserratExtraBold");
 				fonts.AddFont("FASolid.ocf", "FontAwesomeSolid");
+				fonts.AddFont("FluentSystemIcons-Filled.ttf", "FluentIcons");
             });
 
 		builder.Services.AddSingleton<Database>();

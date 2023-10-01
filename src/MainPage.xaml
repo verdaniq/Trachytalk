@@ -104,11 +104,11 @@
                            HorizontalTextAlignment="Center"
                            VerticalOptions="Center"
                            VerticalTextAlignment="Center"
-                           FontFamily="FontAwesomeSolid"
+                           FontFamily="FluentIcons"
                            FontAttributes="Bold"
                            Margin="0"
                            FontSize="32"
-                           Text="&#xf029;"/>
+                           Text="&#xf5e9;"/>
                 </Border>
             </Grid>
         </Border>
