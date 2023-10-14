@@ -21,6 +21,7 @@ public partial class MainViewModel : ObservableObject
     private string _suggestedPhrase = string.Empty;
     private List<string> _suggestedWords = new();
 
+    public event EventHandler? WordListChanged;
 
     public MainViewModel(IPhraseService phraseService)
     {
@@ -42,6 +43,8 @@ public partial class MainViewModel : ObservableObject
 
         UpdatePhraseSuggestions();
         UpdateWordSuggestions();
+
+        WordListChanged?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]

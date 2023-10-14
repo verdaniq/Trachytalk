@@ -39,6 +39,7 @@
                               x:DataType="models:Word">
                     <Label FontSize="Title"
                            Padding="5"
+                           Margin="0,0,30,0"
                            BackgroundColor="{StaticResource Black}"
                            TextColor="{StaticResource White}"
                            MinimumWidthRequest="100"
@@ -65,26 +66,29 @@
         <Border Grid.Row="0"
                 StrokeShape="RoundRectangle 8"
                 BackgroundColor="{AppThemeBinding Dark={DynamicResource Black}, Light={DynamicResource White}}"
-                StrokeThickness="2"
+                StrokeThickness="1"
+                Padding="0"
                 Stroke="{DynamicResource Primary}">
             <Grid Grid.ColumnDefinitions="*, 85"
                   Padding="0"
                   Margin="0">
                 <!-- This will be the screen -->
 
-                <HorizontalStackLayout Margin="0"
-                                       BackgroundColor="{AppThemeBinding Dark={DynamicResource Black}, Light={DynamicResource White}}">
+               <!-- <HorizontalStackLayout Margin="0"
+                                       > -->
                     <CollectionView ItemsSource="{Binding WordList}"
                                     ItemTemplate="{StaticResource WordTemplateSelector}"
-                                    MinimumWidthRequest="2">
+                                    MinimumWidthRequest="2"
+                                    BackgroundColor="{AppThemeBinding Dark={DynamicResource Black}, Light={DynamicResource White}}"
+                                    x:Name="WordListCollection">
                         <CollectionView.ItemsLayout>
                             <LinearItemsLayout ItemSpacing="3"
                                                Orientation="Horizontal"/>
                         </CollectionView.ItemsLayout>
                     </CollectionView>
 
-
-                </HorizontalStackLayout>
+<!--
+                </HorizontalStackLayout> -->
 
                 <Border Grid.Column="1"
                         StrokeShape="RoundRectangle 0,8,0,8"
