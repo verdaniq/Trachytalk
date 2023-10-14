@@ -18,7 +18,11 @@ public static class MauiProgram
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
+                fonts.AddFont("Montserrat-VariableFont_wght.ttf", "Montserrat");
+                fonts.AddFont("Montserrat-ExtraBold.ttf", "MontserratExtraBold");
+				fonts.AddFont("FASolid.otf", "FontAwesomeSolid");
+				fonts.AddFont("FluentSystemIcons-Filled.ttf", "FluentIcons");
+            });
 
 		builder.Services.AddSingleton<Database>();
         builder.Services.AddSingleton<IPhraseService, PhraseService>();

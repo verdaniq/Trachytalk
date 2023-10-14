@@ -11,40 +11,46 @@ public class PhraseService : IPhraseService
         _database = database;
     }
     
-    public async Task<List<string>> GetSuggestions(List<string> phrase)
+    public string GetPhraseSuggestions(List<string> phrase)
     {
         var searchText = string.Join(" ", phrase);
 
-        var suggestions = await _database.GetMatchingPhrases(searchText);
+        var suggestion = _database.GetTopPhrase(searchText);
 
-        var results = new List<string>();
-
-        foreach (var suggestion in suggestions)
+        if (suggestion is not null)
         {
-            results.Add(suggestion.Text);
+            return suggestion.Text;
         }
 
-        return results;
+        return string.Empty;
     }
 
-    public async Task<List<string>> GetSuggestions(string inputText)
+    public List<string> GetWordSuggestions(string inputText)
     {
-        var suggestions = await _database.GetMatchingWords(inputText);
+        var suggestions = _database.GetMatchingWords(inputText);
 
         var results = new List<string>();
 
         foreach (var suggestion in suggestions)
         {
-            results.Add(suggestion.Text);
+            if (!string.IsNullOrEmpty(suggestion?.Text))
+            {
+                results.Add(suggestion.Text);
+            }
         }
 
         return results;
     }
 
-    public async Task PhraseSelected(List<string> phrase)
+    public void PhraseSelected(List<string> phrase)
     {
         var inputText = string.Join(" ", phrase);
 
-        await _database.AddOrUpdateEntry(inputText);
+        foreach (var word in phrase)
+        {
+            _database.AddOrUpdateEntry(word);
+        }
+
+        _database.AddOrUpdateEntry(inputText);
     }
 }

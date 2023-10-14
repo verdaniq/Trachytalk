@@ -2,7 +2,7 @@
 
 public interface IPhraseService
 {
-    Task PhraseSelected(List<string> phrase);
-    Task<List<string>> GetSuggestions(List<string> phrase);
-    Task<List<string>> GetSuggestions(string inputText);
+    void PhraseSelected(List<string> phrase);
+    string GetPhraseSuggestions(List<string> phrase);
+    List<string> GetWordSuggestions(string inputText);
 }

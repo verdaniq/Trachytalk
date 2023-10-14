@@ -3,177 +3,283 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:Trachytalk.ViewModels"
              xmlns:models="clr-namespace:Trachytalk.Models"
+             xmlns:selectors="clr-namespace:Trachytalk.Selectors"
              x:Name="SpeakPage"
              x:DataType="vm:MainViewModel"
              x:Class="Trachytalk.MainPage">
-    
-    <Grid RowDefinitions="2*,8*"
-          Padding="2"
-          Margin="2"
-          ColumnSpacing="2"
-          RowSpacing="2">
-        <Grid Grid.Row="0">
-            <!-- This will be the screen -->
-            
-            <CollectionView ItemsSource="{Binding WordList}">
-                    <CollectionView.ItemsLayout>
+        <ContentPage.Resources>
+                <DataTemplate x:Key="WordTemplate"
+                              x:DataType="models:Word">
+                    <Border BackgroundColor="{StaticResource TileBackground}"
+                            Padding="0"
+                            StrokeShape="RoundRectangle 8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.RemoveWordCommand}"
+                                                  CommandParameter="{Binding Id}"></TapGestureRecognizer>
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="5"
+                                               Padding="5">
+                            <Label Text="{Binding Text}"
+                                   FontSize="Title"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   VerticalOptions="Center"
+                                   VerticalTextAlignment="Center"/>
+                            <Label Text="X"
+                                   TextColor="{StaticResource DeleteBackground}"
+                                   VerticalOptions="Fill"
+                                   Margin="0"
+                                   HorizontalOptions="End"
+                                   VerticalTextAlignment="Center"></Label>
+                        </HorizontalStackLayout>
+                    </Border>
+                </DataTemplate>
+
+                <DataTemplate x:Key="CurrentWordTemplate"
+                              x:DataType="models:Word">
+                    <Label FontSize="Title"
+                           Padding="5"
+                           Margin="0,0,30,0"
+                           BackgroundColor="{StaticResource Black}"
+                           TextColor="{StaticResource White}"
+                           MinimumWidthRequest="100"
+                           FontAttributes="Bold"
+                           Text="{Binding Text}"></Label>
+                </DataTemplate>
+                <selectors:WordTemplateSelector x:Key="WordTemplateSelector"
+                                                WordTemplate="{StaticResource WordTemplate}"
+                                                CurrentWordTemplate="{StaticResource CurrentWordTemplate}"/>
+        </ContentPage.Resources>
+
+        <Grid RowDefinitions="7*,7*, 25*"
+              Padding="2"
+              Margin="2"
+              ColumnSpacing="2"
+              RowSpacing="2">
+
+        <Border Grid.Row="0"
+                Grid.RowSpan="2"
+                StrokeShape="RoundRectangle 8"
+                StrokeThickness="2"
+                BackgroundColor="Black"
+                Stroke="{DynamicResource Black}"></Border>
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 8"
+                BackgroundColor="{AppThemeBinding Dark={DynamicResource Black}, Light={DynamicResource White}}"
+                StrokeThickness="1"
+                Padding="0"
+                Stroke="{DynamicResource Primary}">
+            <Grid Grid.ColumnDefinitions="*, 85"
+                  Padding="0"
+                  Margin="0">
+                <!-- This will be the screen -->
+
+               <!-- <HorizontalStackLayout Margin="0"
+                                       > -->
+                    <CollectionView ItemsSource="{Binding WordList}"
+                                    ItemTemplate="{StaticResource WordTemplateSelector}"
+                                    MinimumWidthRequest="2"
+                                    BackgroundColor="{AppThemeBinding Dark={DynamicResource Black}, Light={DynamicResource White}}"
+                                    x:Name="WordListCollection">
+                        <CollectionView.ItemsLayout>
                             <LinearItemsLayout ItemSpacing="3"
                                                Orientation="Horizontal"/>
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Word">
-                                    <Border BackgroundColor="DarkRed"
-                                            StrokeShape="RoundRectangle 10">
-                                            <Border.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.RemoveWordCommand}"
-                                                                          CommandParameter="{Binding Id}"></TapGestureRecognizer>
-                                            </Border.GestureRecognizers>
-                                            <HorizontalStackLayout Spacing="5"
-                                                                   Padding="5">
-                                                    <Label Text="{Binding Text}"
-                                                           FontSize="Title"
-                                                           TextColor="White"
-                                                           VerticalOptions="Center"
-                                                           VerticalTextAlignment="Center"/>
-                                                    <Label Text="❌"
-                                                           VerticalOptions="Center"
-                                                           VerticalTextAlignment="Center"></Label>
-                                            </HorizontalStackLayout>
-                                    </Border>
-                            </DataTemplate>
-                    </CollectionView.ItemTemplate>
-            </CollectionView>
-            
-            <Label HorizontalOptions="End"
-                   HorizontalTextAlignment="End"
-                   FontSize="Title"
-                   Padding="5"
-                   BackgroundColor="{AppThemeBinding Light={DynamicResource White}, Dark={DynamicResource Black}}"
-                   FontAttributes="Bold"
-                   Text="{Binding CurrentWord}"></Label>
-        </Grid>
-        
+                        </CollectionView.ItemsLayout>
+                    </CollectionView>
+
+<!--
+                </HorizontalStackLayout> -->
+
+                <Border Grid.Column="1"
+                        StrokeShape="RoundRectangle 0,8,0,8"
+                        Background="{DynamicResource Primary}"
+                        Stroke="{DynamicResource Primary}"
+                        MinimumWidthRequest="85"
+                        VerticalOptions="Fill"
+                        HorizontalOptions="Center"
+                        Margin="0"
+                        Padding="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="1" Command="{Binding SpeakPressedCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label TextColor="White"
+                           InputTransparent="True"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           VerticalOptions="Center"
+                           VerticalTextAlignment="Center"
+                           FontFamily="FluentIcons"
+                           FontAttributes="Bold"
+                           Margin="0"
+                           FontSize="32"
+                           Text="&#xf5e9;"/>
+                </Border>
+            </Grid>
+        </Border>
+
         <Grid Grid.Row="1"
-              Margin="0"
+              Margin="5,2"
+              Padding="0,0,0,5"
+              HorizontalOptions="StartAndExpand">
+            <!-- This will be the suggestions -->
+            <CollectionView ItemsSource="{Binding Suggestions}"
+                            MinimumWidthRequest="200"
+                            HorizontalOptions="FillAndExpand">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="3"
+                                       Orientation="Horizontal"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Word">
+                        <Border BackgroundColor="{StaticResource TileBackground}"
+                                Stroke="{StaticResource TileBackground}"
+                                StrokeShape="RoundRectangle 8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={x:Reference SpeakPage}, Path=BindingContext.SuggestionTappedCommand}"
+                                                      CommandParameter="{Binding .}"></TapGestureRecognizer>
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="5"
+                                                   Padding="5">
+                                <Label Text="{Binding .}"
+                                       FontSize="Title"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       VerticalOptions="Center"
+                                       VerticalTextAlignment="Center"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <Grid Grid.Row="2"
+              Margin="0,5,0,10"
               Padding="0"
               RowSpacing="2"
-              RowDefinitions="*,*,*,*">
+              ColumnDefinitions="*,*,*,*,*,*,*,*,*,*"
+              RowDefinitions="*,*,*">
             <!-- This will be the keyboard -->
-            
-            <Grid Grid.Row="0"
-                  Margin="0"
-                  Padding="0"
-                  ColumnDefinitions="*,*,*,*,*,*,*,*,*,*"
-                  ColumnSpacing="2">
-                <Button Text="Q"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="0"/>
-                <Button Text="W"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="1"/>
-                <Button Text="E"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="2"/>
-                <Button Text="R"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="3"/>
-                <Button Text="T"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="4"/>
-                <Button Text="Y"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="5"/>
-                <Button Text="U"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="6"/>
-                <Button Text="I"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="7"/>
-                <Button Text="O"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="8"/>
-                <Button Text="P"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="9"/>
-            </Grid>
-            
-            <Grid Grid.Row="1"
-                  Margin="10,0"
-                  Padding="0"
-                  ColumnDefinitions="*,*,*,*,*,*,*,*,*"
-                  ColumnSpacing="2">
-                <Button Text="A"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="0"/>
-                <Button Text="S"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="1"/>
-                <Button Text="D"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="2"/>
-                <Button Text="F"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="3"/>
-                <Button Text="G"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="4"/>
-                <Button Text="H"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="5"/>
-                <Button Text="J"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="6"/>
-                <Button Text="K"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="7"/>
-                <Button Text="L"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="8"/>
-            </Grid>
-            
-            <Grid Grid.Row="2"
-                  Margin="60,0"
-                  Padding="0"
-                  ColumnDefinitions="*,*,*,*,*,*,*"
-                  ColumnSpacing="2">
-                <Button Text="Z"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="0"/>
-                <Button Text="X"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="1"/>
-                <Button Text="C"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="2"/>
-                <Button Text="V"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="3"/>
-                <Button Text="B"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="4"/>
-                <Button Text="N"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="5"/>
-                <Button Text="M"
-                        Clicked="Button_OnClicked"
-                        Grid.Column="6"/>
-            </Grid>
-            
-            <Grid Grid.Row="3"
-                  Margin="0"
-                  Padding="0"
-                  ColumnDefinitions="*,3*,*"
-                  ColumnSpacing="2">
-                <Button Text="← DEL"
-                        Command="{Binding BackspacePressedCommand}"
-                        Grid.Column="0"/>
-                <Button Text="Space"
-                        Command="{Binding SpacePressedCommand}"
-                        Grid.Column="1"/>
-                <Button Text="Speak 🗣️"
-                        Command="{Binding SpeakPressedCommand}"
-                        Grid.Column="2"/>
-            </Grid>
+
+            <Button Text="Q"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="0"/>
+            <Button Text="W"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="1"/>
+            <Button Text="E"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="2"/>
+            <Button Text="R"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="3"/>
+            <Button Text="T"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="4"/>
+            <Button Text="Y"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="5"/>
+            <Button Text="U"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="6"/>
+            <Button Text="I"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="7"/>
+            <Button Text="O"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="8"/>
+            <Button Text="P"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="0"
+                    Grid.Column="9"/>
+
+            <Button Text="A"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="0"/>
+            <Button Text="S"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="1"/>
+            <Button Text="D"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="2"/>
+            <Button Text="F"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="3"/>
+            <Button Text="G"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="4"/>
+            <Button Text="H"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="5"/>
+            <Button Text="J"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="6"/>
+            <Button Text="K"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="7"/>
+            <Button Text="L"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="1"
+                    Grid.Column="8"/>
+            <Button Text="&#x232b;"
+                    FontFamily="FontAwesomeSolid"
+                    Command="{Binding BackspacePressedCommand}"
+                    Grid.Row="1"
+                    Grid.Column="9"/>
+
+
+            <Button Text="Z"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="0"/>
+            <Button Text="X"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="1"/>
+            <Button Text="C"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="2"/>
+            <Button Text="V"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="3"/>
+            <Button Text="B"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="4"/>
+            <Button Text="N"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="5"/>
+            <Button Text="M"
+                    Clicked="Button_OnClicked"
+                    Grid.Row="2"
+                    Grid.Column="6"/>
+            <Button Text="Space"
+                    TextTransform="Uppercase"
+                    Grid.Row="2"
+                    Grid.Column="7"
+                    Grid.ColumnSpan="3"
+                    Command="{Binding SpacePressedCommand}"/>
+
         </Grid>
     </Grid>
 

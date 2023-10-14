@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using Trachytalk.Models;
 using Trachytalk.Services;
 
@@ -12,12 +14,14 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<Word> WordList { get; set; } = new();
 
-    public ObservableCollection<string> SuggestedWords { get; set; } = new();
-    public ObservableCollection<string> SuggestedPhrases { get; set; } = new();
+    public ObservableCollection<string> Suggestions { get; set; } = new();
 
     public IPhraseService _phraseService { get; }
 
-    private CancellationTokenSource _cts;
+    private string _suggestedPhrase = string.Empty;
+    private List<string> _suggestedWords = new();
+
+    public event EventHandler? WordListChanged;
 
     public MainViewModel(IPhraseService phraseService)
     {
@@ -28,32 +32,40 @@ public partial class MainViewModel : ObservableObject
     public void LetterPressed(string letter)
     {
         CurrentWord = $"{CurrentWord}{letter}";
-        
-        if (_cts != null)
+
+        if (WordList.Any(w => w.IsCurrentWord))
         {
-            _cts.Cancel();
-            _cts.Dispose();
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
         }
 
-        _cts = new CancellationTokenSource();
+        WordList.Add(new Word(CurrentWord, true));
 
-        Task.Delay(500, _cts.Token)
-            .ContinueWith(async _ =>
-            {
-                await UpdateWordSuggestions();
-            });
+        UpdatePhraseSuggestions();
+        UpdateWordSuggestions();
+
+        WordListChanged?.Invoke(this, EventArgs.Empty);
     }
-    
+
     [RelayCommand]
-    private async Task SpacePressed()
+    private void SpacePressed()
     {
-        WordList.Add(new Word(CurrentWord));
-        CurrentWord = "";
-        SuggestedWords.Clear();
+        if (!string.IsNullOrWhiteSpace(CurrentWord))
+        {
+            if (WordList.Any(w => w.IsCurrentWord))
+            {
+                var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+                WordList.Remove(word);
+            }
 
-        await UpdatePhraseSuggestions();
+            WordList.Add(new Word(CurrentWord));
+            CurrentWord = "";
+            Suggestions.Clear();
+
+            UpdatePhraseSuggestions();
+        }
     }
-    
+
     [RelayCommand]
     private void BackspacePressed()
     {
@@ -61,33 +73,42 @@ public partial class MainViewModel : ObservableObject
         {
             CurrentWord = CurrentWord.Substring(0, CurrentWord.Length - 1);
         }
+
+        if (WordList.Any(w => w.IsCurrentWord))
+        {
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
+        }
+
+        WordList.Add(new Word(CurrentWord, true));
+
+        UpdateWordSuggestions();
+
+        if (CurrentWord.Length == 0)
+        {
+            UpdatePhraseSuggestions();
+        }
     }
 
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        //Add the current word
-        if (CurrentWord.Length > 0)
-        {
-            WordList.Add(new Word(CurrentWord));
-        }
-
         string phrase = string.Empty;
-        
-        // speak the current word list using the TextToSpeech API in Essentials
+
         foreach (var word in WordList)
         {
             phrase += $"{word.Text} ";
         }
-        
+
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
-        await _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+        Observable.Start(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList()))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .Subscribe();
 
-        // clear the word list
+        CurrentWord = string.Empty;
         WordList.Clear();
-        SuggestedWords.Clear();
-        SuggestedPhrases.Clear();
+        Suggestions.Clear();
     }
 
     [RelayCommand]
@@ -97,31 +118,94 @@ public partial class MainViewModel : ObservableObject
         {
             var word = WordList.FirstOrDefault(w => w.Id == id);
             WordList.Remove(word);
+            UpdatePhraseSuggestions();
         }
     }
 
-    private async Task UpdateWordSuggestions()
+    [RelayCommand]
+    private void SuggestionTapped(string suggestion)
     {
-        var suggestions = await _phraseService.GetSuggestions(CurrentWord);
-
-        SuggestedWords.Clear();
-
-        foreach (var suggestion in suggestions)
+        if (string.IsNullOrWhiteSpace(suggestion))
         {
-            SuggestedWords.Add(suggestion);
+            return;
         }
+
+        if (suggestion.Contains(' '))
+        {
+            var words = suggestion.Split(' ');
+
+            WordList.Clear();
+
+            foreach (var word in words)
+            {
+                WordList.Add(new Word(word));
+            }
+            CurrentWord = string.Empty;
+        }
+        else
+        {
+            CurrentWord = suggestion;
+            SpacePressed();
+        }
+
+        _suggestedPhrase = string.Empty;
+        _suggestedWords.Clear();
+        Suggestions.Clear();
     }
 
-    private async Task UpdatePhraseSuggestions()
+    private void UpdateWordSuggestions()
+    {
+        Observable.Start(() => _phraseService.GetWordSuggestions(CurrentWord))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestions =>
+            {
+                _suggestedWords.Clear();
+                _suggestedWords.AddRange(suggestions);
+                UpdateSuggestionsList();
+            });
+    }
+
+    private void UpdatePhraseSuggestions()
     {
         var phrase = WordList.Select(w => w.Text).ToList();
-        var suggestions = await _phraseService.GetSuggestions(phrase);
 
-        SuggestedPhrases.Clear();
-
-        foreach (var suggestion in suggestions)
+        if (!string.IsNullOrEmpty(CurrentWord))
         {
-            SuggestedPhrases.Add(suggestion);
+            phrase.Add(CurrentWord);
         }
+
+        Observable.Start(() => _phraseService.GetPhraseSuggestions(phrase))
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestion =>
+            {
+                _suggestedPhrase = suggestion;
+                UpdateSuggestionsList();
+            });
+    }
+
+    private void UpdateSuggestionsList()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            Suggestions.Clear();
+
+            if (!string.IsNullOrWhiteSpace(_suggestedPhrase))
+            {
+                Suggestions.Add(_suggestedPhrase);
+            }
+            else
+            {
+                _suggestedPhrase = string.Empty;
+            }
+
+            var wordsCopy = _suggestedWords.ToList();
+
+            foreach (var suggestion in wordsCopy)
+            {
+                Suggestions.Add(suggestion);
+            }
+        });
     }
 }

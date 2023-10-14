@@ -6,9 +6,12 @@ public class Word
 
     public string Text { get; set; }
 
-    public Word(string word)
+    public bool IsCurrentWord { get; set; } = false;
+
+    public Word(string word, bool currentWord = false)
     {
         this.Text = word;
+        this.IsCurrentWord = currentWord;
     }
 
     public Word()
