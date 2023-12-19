@@ -16,35 +16,116 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<string> Suggestions { get; set; } = new();
 
-    public IPhraseService _phraseService { get; }
+    private IPhraseService _phraseService { get; }
+    private ILoggingService _loggingService;
 
     private string _suggestedPhrase = string.Empty;
     private List<string> _suggestedWords = new();
 
     public event EventHandler? WordListChanged;
 
-    public MainViewModel(IPhraseService phraseService)
+    public MainViewModel(IPhraseService phraseService, ILoggingService loggingService)
     {
         _phraseService = phraseService;
+        _loggingService = loggingService;
+        StartSubscriptions();
+    }
+
+    private void StartSubscriptions()
+    {
+        // word subscriptions
+        _loggingService.LogMessage("Subscribing to word suggestions...");
+        _phraseService.WordSuggestionObservable
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestions =>
+            {
+                _loggingService.LogMessage("Received word suggestions. Updating suggestions list...");
+                try
+                {
+                    _loggingService.LogMessage("Clearing existing suggestions...");
+                    _suggestedWords.Clear();
+                    _loggingService.LogMessage("Cleared.");
+                    _loggingService.LogMessage("Adding new suggestions...");
+                    _suggestedWords.AddRange(suggestions);
+                    _loggingService.LogMessage("Added.");
+                        
+                    _loggingService.LogMessage("Updating suggestions list...");
+                    UpdateSuggestionsList();
+                }
+                catch (Exception e)
+                {
+                    _loggingService.LogError(e);
+                }
+            }, error =>
+            {
+                _loggingService.LogMessage("ERROR: Failed to get word suggestions from subscription.");
+                _loggingService.LogError(error);
+            }, () =>
+            {
+                _loggingService.LogMessage("Completed.");
+            });
+        
+        // phrase subscriptions
+        
+        _loggingService.LogMessage("Subscribing to phrase suggestions...");
+        _phraseService.PhraseSuggestionObservable
+            .SubscribeOn(TaskPoolScheduler.Default)
+            .ObserveOn(Scheduler.Default)
+            .Subscribe(suggestion =>
+                {
+                    _loggingService.LogMessage("Received phrase suggestion. Updating suggestions list...");
+                    try
+                    {
+                        _loggingService.LogMessage("Setting suggested phrase...");
+                        _suggestedPhrase = suggestion;
+                        _loggingService.LogMessage("Set.");
+                        
+                        _loggingService.LogMessage("Updating suggestions list...");
+                        UpdateSuggestionsList();
+                    }
+                    catch (Exception e)
+                    {
+                        _loggingService.LogError(e);
+                    }
+                },
+                error =>
+                {
+                    _loggingService.LogMessage("ERROR: Failed to get phrase suggestion from subscription.");
+                    _loggingService.LogError(error);
+                },
+                () =>
+                {
+                    _loggingService.LogMessage("Completed.");
+                });
     }
 
     [RelayCommand]
-    public void LetterPressed(string letter)
+    public async void LetterPressed(string letter)
     {
-        CurrentWord = $"{CurrentWord}{letter}";
-
-        if (WordList.Any(w => w.IsCurrentWord))
+        try
         {
-            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
-            WordList.Remove(word);
+            CurrentWord = $"{CurrentWord}{letter}";
+
+            if (WordList.Any(w => w.IsCurrentWord))
+            {
+                var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+                WordList.Remove(word);
+            }
+
+            WordList.Add(new Word(CurrentWord, true));
+
+            UpdatePhraseSuggestions();
+
+            UpdateWordSuggestions();
+
+            WordListChanged?.Invoke(this, EventArgs.Empty);
         }
-
-        WordList.Add(new Word(CurrentWord, true));
-
-        UpdatePhraseSuggestions();
-        UpdateWordSuggestions();
-
-        WordListChanged?.Invoke(this, EventArgs.Empty);
+        catch (Exception e)
+        {
+            _loggingService.LogError(e);
+            throw;
+        }
     }
 
     [RelayCommand]
@@ -102,10 +183,19 @@ public partial class MainViewModel : ObservableObject
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
 
-        Observable.Start(() => _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList()))
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .Subscribe();
+        Task.Run(() =>
+        {
+            try
+            {
+                _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+            }
+            catch (Exception e)
+            {
+                _loggingService.LogError(e);
+            }
+        });
 
+        
         CurrentWord = string.Empty;
         WordList.Clear();
         Suggestions.Clear();
@@ -153,58 +243,97 @@ public partial class MainViewModel : ObservableObject
         Suggestions.Clear();
     }
 
-    private void UpdateWordSuggestions()
+    private async void UpdateWordSuggestions()
     {
-        Observable.Start(() => _phraseService.GetWordSuggestions(CurrentWord))
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestions =>
-            {
-                _suggestedWords.Clear();
-                _suggestedWords.AddRange(suggestions);
-                UpdateSuggestionsList();
-            });
+        try
+        {
+            _phraseService.UpdateWordSuggestions(CurrentWord);
+        }
+        catch (Exception e)
+        {
+            _loggingService.LogError(e);
+        }
     }
 
     private void UpdatePhraseSuggestions()
     {
-        var phrase = WordList.Select(w => w.Text).ToList();
-
-        if (!string.IsNullOrEmpty(CurrentWord))
+        try
         {
-            phrase.Add(CurrentWord);
-        }
+            _loggingService.LogMessage("Creating phrase from word list...");
+            var phrase = WordList.Select(w => w.Text).ToList();
+            _loggingService.LogMessage("Created.");
 
-        Observable.Start(() => _phraseService.GetPhraseSuggestions(phrase))
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestion =>
+            if (!string.IsNullOrEmpty(CurrentWord))
             {
-                _suggestedPhrase = suggestion;
-                UpdateSuggestionsList();
-            });
+                _loggingService.LogMessage("Adding current word to phrase...");
+                phrase.Add(CurrentWord);
+                _loggingService.LogMessage("Added.");
+            }
+            
+            _phraseService.UpdatePhraseSuggestions(phrase);
+        }
+        catch (Exception e)
+        {
+            _loggingService.LogError(e);
+        }
     }
 
     private void UpdateSuggestionsList()
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
-            Suggestions.Clear();
+            try
+            {
+                _loggingService.LogMessage("Clearing suggestions list...");
+                Suggestions.Clear();
+                _loggingService.LogMessage("Cleared.");
+            }
+            catch (Exception e)
+            {
+                _loggingService.LogError(e);
+            }
 
             if (!string.IsNullOrWhiteSpace(_suggestedPhrase))
             {
-                Suggestions.Add(_suggestedPhrase);
+                _loggingService.LogMessage("Suggested phrase is not empty. Adding to suggestions list...");
+                try
+                {
+                    Suggestions.Add(_suggestedPhrase);
+                    _loggingService.LogMessage("Added.");
+                }
+                catch (Exception e)
+                {
+                    _loggingService.LogError(e);
+                }
             }
             else
             {
-                _suggestedPhrase = string.Empty;
+                try
+                {
+                    _suggestedPhrase = string.Empty;
+                }
+                catch (Exception e)
+                {
+                    _loggingService.LogError(e);
+                }
             }
 
-            var wordsCopy = _suggestedWords.ToList();
-
-            foreach (var suggestion in wordsCopy)
+            try
             {
-                Suggestions.Add(suggestion);
+                _loggingService.LogMessage("Creating word suggestions from suggestions list...");
+                var wordsCopy = _suggestedWords.ToList();
+                _loggingService.LogMessage("Created.");
+
+                foreach (var suggestion in wordsCopy)
+                {
+                    _loggingService.LogMessage("Adding word suggestion to suggestions list...");
+                    Suggestions.Add(suggestion);
+                    _loggingService.LogMessage("Added.");
+                }
+            }
+            catch (Exception e)
+            {
+                _loggingService.LogError(e);
             }
         });
     }
