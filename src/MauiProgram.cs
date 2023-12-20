@@ -14,30 +14,31 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
-#if DEBUG
-#else
-			.UseSentry(options => {
-				// The DSN is the only required setting.
-				options.Dsn = "https://35e7b2917b27c508ffd3f7f4ff9db9c4@o4506416056500224.ingest.sentry.io/4506417486954496";
-
-				// Use debug mode if you want to see what the SDK is doing.
-				// Debug messages are written to stdout with Console.Writeline,
-				// and are viewable in your IDE's debug console or with 'adb logcat', etc.
-				// This option is not recommended when deploying your application.
-				options.Debug = true;
-				
-				options.DiagnosticLevel = SentryLevel.Debug;
-
-				// Set TracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-				// We recommend adjusting this value in production.
-				options.TracesSampleRate = 1.0;
-
-				// Other Sentry options can be set here.
-				options.EnableTracing = true;
-
-				options.IsGlobalModeEnabled = true;
-			})
-#endif
+			// Uncomment the following code to enable Sentry in release builds for testing
+// #if DEBUG
+// #else
+// 			.UseSentry(options => {
+// 				// The DSN is the only required setting.
+// 				options.Dsn = "https://35e7b2917b27c508ffd3f7f4ff9db9c4@o4506416056500224.ingest.sentry.io/4506417486954496";
+//
+// 				// Use debug mode if you want to see what the SDK is doing.
+// 				// Debug messages are written to stdout with Console.Writeline,
+// 				// and are viewable in your IDE's debug console or with 'adb logcat', etc.
+// 				// This option is not recommended when deploying your application.
+// 				options.Debug = true;
+// 				
+// 				options.DiagnosticLevel = SentryLevel.Debug;
+//
+// 				// Set TracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+// 				// We recommend adjusting this value in production.
+// 				options.TracesSampleRate = 1.0;
+//
+// 				// Other Sentry options can be set here.
+// 				options.EnableTracing = true;
+//
+// 				options.IsGlobalModeEnabled = true;
+// 			})
+// #endif
 			.UseMauiCommunityToolkit()
 			.ConfigureFonts(fonts =>
 			{
@@ -59,7 +60,9 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 		builder.Services.AddSingleton<ILoggingService, DebugLoggingService>();
 #else
-		builder.Services.AddSingleton<ILoggingService, LoggingService>();
+		builder.Services.AddSingleton<ILoggingService, DebugLoggingService>();
+		// use the following for Sentry builds
+		//builder.Services.AddSingleton<ILoggingService, LoggingService>();
 #endif
 
 		return builder.Build();
