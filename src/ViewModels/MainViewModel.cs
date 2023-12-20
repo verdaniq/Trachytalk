@@ -34,23 +34,15 @@ public partial class MainViewModel : ObservableObject
     private void StartSubscriptions()
     {
         // word subscriptions
-        _loggingService.LogMessage("Subscribing to word suggestions...");
         _phraseService.WordSuggestionObservable
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
             .Subscribe(suggestions =>
             {
-                _loggingService.LogMessage("Received word suggestions. Updating suggestions list...");
                 try
                 {
-                    _loggingService.LogMessage("Clearing existing suggestions...");
                     _suggestedWords.Clear();
-                    _loggingService.LogMessage("Cleared.");
-                    _loggingService.LogMessage("Adding new suggestions...");
                     _suggestedWords.AddRange(suggestions);
-                    _loggingService.LogMessage("Added.");
-                        
-                    _loggingService.LogMessage("Updating suggestions list...");
                     UpdateSuggestionsList();
                 }
                 catch (Exception e)
@@ -68,20 +60,15 @@ public partial class MainViewModel : ObservableObject
         
         // phrase subscriptions
         
-        _loggingService.LogMessage("Subscribing to phrase suggestions...");
         _phraseService.PhraseSuggestionObservable
             .SubscribeOn(TaskPoolScheduler.Default)
             .ObserveOn(Scheduler.Default)
             .Subscribe(suggestion =>
                 {
-                    _loggingService.LogMessage("Received phrase suggestion. Updating suggestions list...");
                     try
                     {
-                        _loggingService.LogMessage("Setting suggested phrase...");
                         _suggestedPhrase = suggestion;
-                        _loggingService.LogMessage("Set.");
                         
-                        _loggingService.LogMessage("Updating suggestions list...");
                         UpdateSuggestionsList();
                     }
                     catch (Exception e)
@@ -93,15 +80,11 @@ public partial class MainViewModel : ObservableObject
                 {
                     _loggingService.LogMessage("ERROR: Failed to get phrase suggestion from subscription.");
                     _loggingService.LogError(error);
-                },
-                () =>
-                {
-                    _loggingService.LogMessage("Completed.");
                 });
     }
 
     [RelayCommand]
-    public async void LetterPressed(string letter)
+    public void LetterPressed(string letter)
     {
         try
         {
@@ -182,20 +165,9 @@ public partial class MainViewModel : ObservableObject
         }
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
-
-        Task.Run(() =>
-        {
-            try
-            {
-                _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
-            }
-            catch (Exception e)
-            {
-                _loggingService.LogError(e);
-            }
-        });
-
         
+        _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+
         CurrentWord = string.Empty;
         WordList.Clear();
         Suggestions.Clear();
@@ -259,15 +231,11 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            _loggingService.LogMessage("Creating phrase from word list...");
             var phrase = WordList.Select(w => w.Text).ToList();
-            _loggingService.LogMessage("Created.");
 
             if (!string.IsNullOrEmpty(CurrentWord))
             {
-                _loggingService.LogMessage("Adding current word to phrase...");
                 phrase.Add(CurrentWord);
-                _loggingService.LogMessage("Added.");
             }
             
             _phraseService.UpdatePhraseSuggestions(phrase);
@@ -284,9 +252,7 @@ public partial class MainViewModel : ObservableObject
         {
             try
             {
-                _loggingService.LogMessage("Clearing suggestions list...");
                 Suggestions.Clear();
-                _loggingService.LogMessage("Cleared.");
             }
             catch (Exception e)
             {
@@ -295,11 +261,9 @@ public partial class MainViewModel : ObservableObject
 
             if (!string.IsNullOrWhiteSpace(_suggestedPhrase))
             {
-                _loggingService.LogMessage("Suggested phrase is not empty. Adding to suggestions list...");
                 try
                 {
                     Suggestions.Add(_suggestedPhrase);
-                    _loggingService.LogMessage("Added.");
                 }
                 catch (Exception e)
                 {
@@ -320,15 +284,11 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
-                _loggingService.LogMessage("Creating word suggestions from suggestions list...");
                 var wordsCopy = _suggestedWords.ToList();
-                _loggingService.LogMessage("Created.");
 
                 foreach (var suggestion in wordsCopy)
                 {
-                    _loggingService.LogMessage("Adding word suggestion to suggestions list...");
                     Suggestions.Add(suggestion);
-                    _loggingService.LogMessage("Added.");
                 }
             }
             catch (Exception e)

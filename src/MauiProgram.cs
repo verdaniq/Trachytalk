@@ -14,6 +14,8 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
+#if DEBUG
+#else
 			.UseSentry(options => {
 				// The DSN is the only required setting.
 				options.Dsn = "https://35e7b2917b27c508ffd3f7f4ff9db9c4@o4506416056500224.ingest.sentry.io/4506417486954496";
@@ -35,6 +37,7 @@ public static class MauiProgram
 
 				options.IsGlobalModeEnabled = true;
 			})
+#endif
 			.UseMauiCommunityToolkit()
 			.ConfigureFonts(fonts =>
 			{
@@ -52,10 +55,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<MainViewModel>();
 		builder.Services.AddSingleton<MainPage>();
 
-		builder.Services.AddSingleton<ILoggingService, LoggingService>();
-
 #if DEBUG
 		builder.Logging.AddDebug();
+		builder.Services.AddSingleton<ILoggingService, DebugLoggingService>();
+#else
+		builder.Services.AddSingleton<ILoggingService, LoggingService>();
 #endif
 
 		return builder.Build();

@@ -26,17 +26,18 @@ public class PhraseService : IPhraseService
     
     public void UpdatePhraseSuggestions(List<string> phrase)
     {
-        _loggingService.LogMessage("[PhraseService] Updating phrase suggestions...");
         try
         {
             var searchText = string.Join(" ", phrase);
 
             var suggestion = _database.GetTopPhrase(searchText);
 
-            if (suggestion is null) return;
-            _loggingService.LogMessage($"[PhraseService] Calling Next on observable with suggested phrase: {suggestion.Text}");
+            if (suggestion is null)
+            {
+                return;
+            }
+            
             _phraseSuggestionSubject.OnNext(suggestion.Text);
-            _loggingService.LogMessage("[PhraseService] Next called.");
         }
         catch (Exception e)
         {
@@ -47,7 +48,6 @@ public class PhraseService : IPhraseService
 
     public void UpdateWordSuggestions(string inputText)
     {
-        _loggingService.LogMessage("[PhraseService] Updating word suggestions...");
         try
         {
             var suggestions = _database.GetMatchingWords(inputText);
@@ -73,10 +73,10 @@ public class PhraseService : IPhraseService
 
     public void PhraseSelected(List<string> phrase)
     {
+        var inputText = string.Join(" ", phrase);
+        
         try
         {
-            var inputText = string.Join(" ", phrase);
-
             foreach (var word in phrase)
             {
                 _database.AddOrUpdateEntry(word);

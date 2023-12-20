@@ -15,7 +15,6 @@ public partial class App : Application
 		AppDomain.CurrentDomain.UnhandledException += async (sender, args) =>
 		{
 			var exception = (Exception)args.ExceptionObject;
-			SentrySdk.CaptureException(exception);;
 			_loggingService.LogError(exception);
 			await page.DisplayAlert("Error", exception.Message, "OK");
 			await page.DisplayAlert("Error", exception.StackTrace, "OK");
@@ -23,7 +22,6 @@ public partial class App : Application
 		
 		AppDomain.CurrentDomain.FirstChanceException += async (sender, args) =>
 		{
-			SentrySdk.CaptureException(args.Exception);;
 			_loggingService.LogError(args.Exception);
 			await page.DisplayAlert("Error", args.Exception.Message, "OK");
 			await page.DisplayAlert("Error", args.Exception.StackTrace, "OK");

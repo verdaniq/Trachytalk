@@ -76,7 +76,6 @@ public class Database(ILoggingService loggingService)
 
             if (collection is null)
             {
-                loggingService.LogMessage("[Database] Collection is null.");
                 return null;
             }
 

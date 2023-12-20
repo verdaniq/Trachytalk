@@ -23,3 +23,17 @@ public class LoggingService : ILoggingService
         SentrySdk.CaptureMessage(message);
     }
 }
+
+public class DebugLoggingService : ILoggingService
+{
+    public void LogError(Exception exception)
+    {
+        Console.WriteLine(exception.Message);
+        Console.WriteLine(exception.StackTrace);
+    }
+    
+    public void LogMessage(string message)
+    {
+        Console.WriteLine(message);
+    }
+}
