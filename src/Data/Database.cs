@@ -84,6 +84,11 @@ public class Database(ILoggingService loggingService)
                 .OrderByDescending(e => e.Count)
                 .FirstOrDefault();
 
+            if (string.IsNullOrEmpty(result.Text))
+            {
+                return null;
+            }
+            
             return result;
         }
         catch (Exception e)
@@ -96,6 +101,11 @@ public class Database(ILoggingService loggingService)
 
     public void AddOrUpdateEntry(string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+        
         var isPhrase = text.Contains(" ");
 
         using var db = new LiteDatabase(DatabasePath);
