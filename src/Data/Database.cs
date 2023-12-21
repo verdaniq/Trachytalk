@@ -84,7 +84,7 @@ public class Database(ILoggingService loggingService)
                 .OrderByDescending(e => e.Count)
                 .FirstOrDefault();
 
-            if (string.IsNullOrEmpty(result.Text))
+            if (string.IsNullOrEmpty(result?.Text))
             {
                 return null;
             }
