@@ -163,6 +163,8 @@ public partial class MainViewModel : ObservableObject
         {
             phrase += $"{word.Text} ";
         }
+        
+        if (string.IsNullOrEmpty(phrase)) return;
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
         
