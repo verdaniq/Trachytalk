@@ -1,14 +1,16 @@
-﻿using LiteDB;
+﻿#nullable enable
+using LiteDB;
+using Trachytalk.Services;
 
 namespace Trachytalk.Data;
 
-public class Database
+public class Database(ILoggingService loggingService)
 {
     private const string DatabaseFilename = "Trachytalk.db";
     
     private static string DatabasePath =>
     Path.Combine(FileSystem.AppDataDirectory, DatabaseFilename);
-    
+
     public IEnumerable<TextEntry> GetPhrases()
     {
         using var db = new LiteDatabase(DatabasePath);
@@ -20,21 +22,29 @@ public class Database
 
     public IEnumerable<TextEntry> GetMatchingWords(string text)
     {
-        if (string.IsNullOrEmpty(text))
+        try
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return new List<TextEntry>();
+            }
+
+            using var db = new LiteDatabase(DatabasePath);
+
+            var collection = db.GetCollection<TextEntry>("TextEntries");
+
+            var results = collection.Query()
+                .Where(e => e.Text.StartsWith(text.ToLower()) && !e.IsPhrase)
+                .OrderByDescending(e => e.Count)
+                .ToList();
+
+            return results;
+        }
+        catch (Exception e)
+        {
+            loggingService.LogError(e);
             return new List<TextEntry>();
         }
-
-        using var db = new LiteDatabase(DatabasePath);
-
-        var collection = db.GetCollection<TextEntry>("TextEntries");
-
-        var results = collection.Query()
-            .Where(e => e.Text.StartsWith(text.ToLower()) && !e.IsPhrase)
-            .OrderByDescending(e => e.Count)
-            .ToList();
-
-        return results;
     }
 
     public IEnumerable<TextEntry> GetMatchingPhrases(string text)
@@ -51,27 +61,51 @@ public class Database
         return results;
     }
 
-    public TextEntry GetTopPhrase(string text)
+    public TextEntry? GetTopPhrase(string text)
     {
-        if (string.IsNullOrEmpty(text))
+        try
         {
-            return null;
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
+
+            using var db = new LiteDatabase(DatabasePath);
+
+            var collection = db.GetCollection<TextEntry>("TextEntries");
+
+            if (collection is null)
+            {
+                return null;
+            }
+
+            var result = collection.Query()
+                .Where(e => e.Text.StartsWith(text.ToLower()) && e.IsPhrase)
+                .OrderByDescending(e => e.Count)
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(result?.Text))
+            {
+                return null;
+            }
+            
+            return result;
         }
-
-        using var db = new LiteDatabase(DatabasePath);
-
-        var collection = db.GetCollection<TextEntry>("TextEntries");
-
-        var result = collection.Query()
-            .Where(e => e.Text.StartsWith(text.ToLower()) && e.IsPhrase)
-            .OrderByDescending(e => e.Count)
-            .FirstOrDefault();
-
-        return result;
+        catch (Exception e)
+        {
+            loggingService.LogMessage("[Database] Error getting top phrase.");
+            loggingService.LogError(e);
+            return new TextEntry();
+        }
     }
 
     public void AddOrUpdateEntry(string text)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+        
         var isPhrase = text.Contains(" ");
 
         using var db = new LiteDatabase(DatabasePath);
