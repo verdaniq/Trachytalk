@@ -1,14 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using Trachytalk.Models;
 using Trachytalk.Services;
 
 namespace Trachytalk.ViewModels;
 
-public partial class MainViewModel : ObservableObject
+public partial class MainViewModel : ObservableObject, IDisposable
 {
     [ObservableProperty]
     private string _currentWord;
@@ -22,6 +20,9 @@ public partial class MainViewModel : ObservableObject
 
     private string _suggestedPhrase = string.Empty;
     private readonly List<string> _suggestedWords = [];
+    
+    private IDisposable _wordSubscription;
+    private IDisposable _phraseSubscription;
 
     public MainViewModel(IPhraseService phraseService, ILoggingService loggingService)
     {
@@ -33,57 +34,39 @@ public partial class MainViewModel : ObservableObject
     private void StartSubscriptions()
     {
         // word subscriptions
-        _phraseService.WordSuggestionObservable
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestions =>
+        _wordSubscription = _phraseService.SubscribeToWordSuggestions(suggestions =>
+        {
+            try
             {
-                try
-                {
-                    _suggestedWords.Clear();
-                    _suggestedWords.AddRange(suggestions);
-                    UpdateSuggestionsList();
-                }
-                catch (Exception e)
-                {
-                    _loggingService.LogError(e);
-                }
-            }, error =>
+                _suggestedWords.Clear();
+                _suggestedWords.AddRange(suggestions);
+                UpdateSuggestionsList();
+            }
+            catch (Exception e)
             {
-                _loggingService.LogMessage("ERROR: Failed to get word suggestions from subscription.");
-                _loggingService.LogError(error);
-            }, () =>
-            {
-                _loggingService.LogMessage("Completed.");
-            });
+                _loggingService.LogError(e);
+            }
+        });
         
         // phrase subscriptions
-        
-        _phraseService.PhraseSuggestionObservable
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestion =>
-                {
-                    try
-                    {
-                        _suggestedPhrase = suggestion;
-                        
-                        UpdateSuggestionsList();
-                    }
-                    catch (Exception e)
-                    {
-                        _loggingService.LogError(e);
-                    }
-                },
-                error =>
-                {
-                    _loggingService.LogMessage("ERROR: Failed to get phrase suggestion from subscription.");
-                    _loggingService.LogError(error);
-                });
+
+        _phraseSubscription = _phraseService.SubscribeToPhraseSuggestions(suggestion =>
+        {
+            try
+            {
+                _suggestedPhrase = suggestion;
+
+                UpdateSuggestionsList();
+            }
+            catch (Exception e)
+            {
+                _loggingService.LogError(e);
+            }
+        });
     }
 
     [RelayCommand]
-    public void LetterPressed(string letter)
+    private void LetterPressed(string letter)
     {
         try
         {
@@ -207,7 +190,7 @@ public partial class MainViewModel : ObservableObject
         Suggestions.Clear();
     }
 
-    private async void UpdateWordSuggestions()
+    private void UpdateWordSuggestions()
     {
         try
         {
@@ -240,7 +223,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateSuggestionsList()
     {
-        MainThread.BeginInvokeOnMainThread(async () =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
             try
             {
@@ -276,9 +259,9 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
-                var wordsCopy = _suggestedWords.ToList();
+                //var wordsCopy = _suggestedWords.ToList();
 
-                foreach (var suggestion in wordsCopy)
+                foreach (var suggestion in _suggestedWords)
                 {
                     Suggestions.Add(suggestion);
                 }
@@ -288,5 +271,12 @@ public partial class MainViewModel : ObservableObject
                 _loggingService.LogError(e);
             }
         });
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _wordSubscription?.Dispose();
+        _phraseSubscription?.Dispose();
     }
 }
