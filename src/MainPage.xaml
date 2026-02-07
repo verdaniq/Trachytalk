@@ -69,7 +69,7 @@
                 StrokeThickness="1"
                 Padding="0"
                 Stroke="{DynamicResource Primary}">
-            <Grid Grid.ColumnDefinitions="*, 85"
+            <Grid ColumnDefinitions="*, 85"
                   Padding="0"
                   Margin="0">
                 <!-- This will be the screen -->
@@ -130,7 +130,7 @@
                                        Orientation="Horizontal"/>
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:Word">
+                    <DataTemplate x:DataType="x:String">
                         <Border BackgroundColor="{StaticResource TileBackground}"
                                 Stroke="{StaticResource TileBackground}"
                                 StrokeShape="RoundRectangle 8">
@@ -141,6 +141,7 @@
                             <HorizontalStackLayout Spacing="5"
                                                    Padding="5">
                                 <Label Text="{Binding .}"
+                                       InputTransparent="True"
                                        FontSize="Title"
                                        FontAttributes="Bold"
                                        TextColor="White"
