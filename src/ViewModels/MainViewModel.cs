@@ -10,19 +10,18 @@ namespace Trachytalk.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    [ObservableProperty] private string currentWord;
+    [ObservableProperty]
+    private string _currentWord;
 
-    public ObservableCollection<Word> WordList { get; set; } = new();
+    public ObservableCollection<Word> WordList { get; set; } = [];
 
-    public ObservableCollection<string> Suggestions { get; set; } = new();
+    public ObservableCollection<string> Suggestions { get; set; } = [];
 
     private IPhraseService _phraseService { get; }
     private ILoggingService _loggingService;
 
     private string _suggestedPhrase = string.Empty;
-    private List<string> _suggestedWords = new();
-
-    public event EventHandler? WordListChanged;
+    private readonly List<string> _suggestedWords = [];
 
     public MainViewModel(IPhraseService phraseService, ILoggingService loggingService)
     {
@@ -101,8 +100,6 @@ public partial class MainViewModel : ObservableObject
             UpdatePhraseSuggestions();
 
             UpdateWordSuggestions();
-
-            WordListChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -114,20 +111,19 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void SpacePressed()
     {
-        if (!string.IsNullOrWhiteSpace(CurrentWord))
+        if (string.IsNullOrWhiteSpace(CurrentWord)) return;
+        
+        if (WordList.Any(w => w.IsCurrentWord))
         {
-            if (WordList.Any(w => w.IsCurrentWord))
-            {
-                var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
-                WordList.Remove(word);
-            }
-
-            WordList.Add(new Word(CurrentWord));
-            CurrentWord = "";
-            Suggestions.Clear();
-
-            UpdatePhraseSuggestions();
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
         }
+
+        WordList.Add(new Word(CurrentWord));
+        CurrentWord = "";
+        Suggestions.Clear();
+
+        UpdatePhraseSuggestions();
     }
 
     [RelayCommand]
@@ -135,7 +131,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (CurrentWord.Length > 0)
         {
-            CurrentWord = CurrentWord.Substring(0, CurrentWord.Length - 1);
+            CurrentWord = CurrentWord[..^1];
         }
 
         if (WordList.Any(w => w.IsCurrentWord))
@@ -157,13 +153,8 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        string phrase = string.Empty;
+        var phrase = WordList.Aggregate(string.Empty, (current, word) => current + $"{word.Text} ");
 
-        foreach (var word in WordList)
-        {
-            phrase += $"{word.Text} ";
-        }
-        
         if (string.IsNullOrEmpty(phrase)) return;
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
@@ -178,12 +169,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void RemoveWord(string id)
     {
-        if (WordList.Any((w => w.Id == id)))
-        {
-            var word = WordList.FirstOrDefault(w => w.Id == id);
-            WordList.Remove(word);
-            UpdatePhraseSuggestions();
-        }
+        if (!WordList.Any((w => w.Id == id))) return;
+        
+        var word = WordList.FirstOrDefault(w => w.Id == id);
+        WordList.Remove(word);
+        UpdatePhraseSuggestions();
     }
 
     [RelayCommand]

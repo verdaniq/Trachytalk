@@ -1,6 +1,3 @@
-using System;
-using Sentry;
-
 namespace Trachytalk.Services;
 
 public interface ILoggingService

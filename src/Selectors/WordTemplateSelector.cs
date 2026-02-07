@@ -1,5 +1,4 @@
-﻿using System;
-using Trachytalk.Models;
+﻿using Trachytalk.Models;
 
 namespace Trachytalk.Selectors;
 
