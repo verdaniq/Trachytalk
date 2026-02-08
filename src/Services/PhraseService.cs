@@ -23,6 +23,7 @@ public class PhraseService(Database database, ILoggingService loggingService) : 
 
             if (suggestion is null)
             {
+                _phraseSuggestionState.SetValue(string.Empty);
                 return;
             }
             
