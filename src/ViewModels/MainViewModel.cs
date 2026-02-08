@@ -136,13 +136,16 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        var phrase = WordList.Aggregate(string.Empty, (current, word) => current + $"{word.Text} ");
+        // Filter out current word placeholder and words with empty text
+        var wordsToSpeak = WordList.Where(w => !w.IsCurrentWord && !string.IsNullOrWhiteSpace(w.Text)).ToList();
+        
+        var phrase = string.Join(" ", wordsToSpeak.Select(x => x.Text));
 
-        if (string.IsNullOrEmpty(phrase)) return;
+        if (string.IsNullOrWhiteSpace(phrase)) return;
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
         
-        _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+        _phraseService.PhraseSelected(wordsToSpeak.Select(x => x.Text).ToList());
 
         CurrentWord = string.Empty;
         WordList.Clear();
