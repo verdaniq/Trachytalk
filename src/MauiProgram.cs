@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
-using Sentry;
 using Trachytalk.Data;
 using Trachytalk.Services;
 using Trachytalk.ViewModels;

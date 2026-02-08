@@ -1,28 +1,28 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using Trachytalk.Models;
 using Trachytalk.Services;
 
 namespace Trachytalk.ViewModels;
 
-public partial class MainViewModel : ObservableObject
+public partial class MainViewModel : ObservableObject, IDisposable
 {
-    [ObservableProperty] private string currentWord;
+    [ObservableProperty]
+    private string _currentWord = string.Empty;
 
-    public ObservableCollection<Word> WordList { get; set; } = new();
+    public ObservableCollection<Word> WordList { get; set; } = [];
 
-    public ObservableCollection<string> Suggestions { get; set; } = new();
+    public ObservableCollection<string> Suggestions { get; set; } = [];
 
     private IPhraseService _phraseService { get; }
     private ILoggingService _loggingService;
 
     private string _suggestedPhrase = string.Empty;
-    private List<string> _suggestedWords = new();
-
-    public event EventHandler? WordListChanged;
+    private readonly List<string> _suggestedWords = [];
+    
+    private IDisposable? _wordSubscription;
+    private IDisposable? _phraseSubscription;
 
     public MainViewModel(IPhraseService phraseService, ILoggingService loggingService)
     {
@@ -34,57 +34,39 @@ public partial class MainViewModel : ObservableObject
     private void StartSubscriptions()
     {
         // word subscriptions
-        _phraseService.WordSuggestionObservable
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestions =>
+        _wordSubscription = _phraseService.SubscribeToWordSuggestions(suggestions =>
+        {
+            try
             {
-                try
-                {
-                    _suggestedWords.Clear();
-                    _suggestedWords.AddRange(suggestions);
-                    UpdateSuggestionsList();
-                }
-                catch (Exception e)
-                {
-                    _loggingService.LogError(e);
-                }
-            }, error =>
+                _suggestedWords.Clear();
+                _suggestedWords.AddRange(suggestions);
+                UpdateSuggestionsList();
+            }
+            catch (Exception e)
             {
-                _loggingService.LogMessage("ERROR: Failed to get word suggestions from subscription.");
-                _loggingService.LogError(error);
-            }, () =>
-            {
-                _loggingService.LogMessage("Completed.");
-            });
+                _loggingService.LogError(e);
+            }
+        });
         
         // phrase subscriptions
-        
-        _phraseService.PhraseSuggestionObservable
-            .SubscribeOn(TaskPoolScheduler.Default)
-            .ObserveOn(Scheduler.Default)
-            .Subscribe(suggestion =>
-                {
-                    try
-                    {
-                        _suggestedPhrase = suggestion;
-                        
-                        UpdateSuggestionsList();
-                    }
-                    catch (Exception e)
-                    {
-                        _loggingService.LogError(e);
-                    }
-                },
-                error =>
-                {
-                    _loggingService.LogMessage("ERROR: Failed to get phrase suggestion from subscription.");
-                    _loggingService.LogError(error);
-                });
+
+        _phraseSubscription = _phraseService.SubscribeToPhraseSuggestions(suggestion =>
+        {
+            try
+            {
+                _suggestedPhrase = suggestion;
+
+                UpdateSuggestionsList();
+            }
+            catch (Exception e)
+            {
+                _loggingService.LogError(e);
+            }
+        });
     }
 
     [RelayCommand]
-    public void LetterPressed(string letter)
+    private void LetterPressed(string letter)
     {
         try
         {
@@ -101,8 +83,6 @@ public partial class MainViewModel : ObservableObject
             UpdatePhraseSuggestions();
 
             UpdateWordSuggestions();
-
-            WordListChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception e)
         {
@@ -114,20 +94,19 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void SpacePressed()
     {
-        if (!string.IsNullOrWhiteSpace(CurrentWord))
+        if (string.IsNullOrWhiteSpace(CurrentWord)) return;
+        
+        if (WordList.Any(w => w.IsCurrentWord))
         {
-            if (WordList.Any(w => w.IsCurrentWord))
-            {
-                var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
-                WordList.Remove(word);
-            }
-
-            WordList.Add(new Word(CurrentWord));
-            CurrentWord = "";
-            Suggestions.Clear();
-
-            UpdatePhraseSuggestions();
+            var word = WordList.FirstOrDefault(w => w.IsCurrentWord);
+            WordList.Remove(word);
         }
+
+        WordList.Add(new Word(CurrentWord));
+        CurrentWord = "";
+        Suggestions.Clear();
+
+        UpdatePhraseSuggestions();
     }
 
     [RelayCommand]
@@ -135,7 +114,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (CurrentWord.Length > 0)
         {
-            CurrentWord = CurrentWord.Substring(0, CurrentWord.Length - 1);
+            CurrentWord = CurrentWord[..^1];
         }
 
         if (WordList.Any(w => w.IsCurrentWord))
@@ -157,18 +136,15 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        string phrase = string.Empty;
-
-        foreach (var word in WordList)
-        {
-            phrase += $"{word.Text} ";
-        }
+        var wordsToSpeak = WordList.Where(w => !string.IsNullOrWhiteSpace(w.Text)).ToList();
         
-        if (string.IsNullOrEmpty(phrase)) return;
+        var phrase = string.Join(" ", wordsToSpeak.Select(x => x.Text));
+
+        if (string.IsNullOrWhiteSpace(phrase)) return;
 
         await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
         
-        _phraseService.PhraseSelected(WordList.Select(x => x.Text).ToList());
+        _phraseService.PhraseSelected(wordsToSpeak.Select(x => x.Text).ToList());
 
         CurrentWord = string.Empty;
         WordList.Clear();
@@ -178,12 +154,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void RemoveWord(string id)
     {
-        if (WordList.Any((w => w.Id == id)))
-        {
-            var word = WordList.FirstOrDefault(w => w.Id == id);
-            WordList.Remove(word);
-            UpdatePhraseSuggestions();
-        }
+        if (!WordList.Any((w => w.Id == id))) return;
+        
+        var word = WordList.FirstOrDefault(w => w.Id == id);
+        WordList.Remove(word);
+        UpdatePhraseSuggestions();
     }
 
     [RelayCommand]
@@ -217,7 +192,7 @@ public partial class MainViewModel : ObservableObject
         Suggestions.Clear();
     }
 
-    private async void UpdateWordSuggestions()
+    private void UpdateWordSuggestions()
     {
         try
         {
@@ -250,7 +225,7 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateSuggestionsList()
     {
-        MainThread.BeginInvokeOnMainThread(async () =>
+        MainThread.BeginInvokeOnMainThread(() =>
         {
             try
             {
@@ -286,9 +261,9 @@ public partial class MainViewModel : ObservableObject
 
             try
             {
-                var wordsCopy = _suggestedWords.ToList();
+                //var wordsCopy = _suggestedWords.ToList();
 
-                foreach (var suggestion in wordsCopy)
+                foreach (var suggestion in _suggestedWords)
                 {
                     Suggestions.Add(suggestion);
                 }
@@ -298,5 +273,12 @@ public partial class MainViewModel : ObservableObject
                 _loggingService.LogError(e);
             }
         });
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _wordSubscription?.Dispose();
+        _phraseSubscription?.Dispose();
     }
 }

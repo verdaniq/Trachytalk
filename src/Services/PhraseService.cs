@@ -1,28 +1,17 @@
-﻿using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using Trachytalk.Data;
+﻿using Trachytalk.Data;
 
 namespace Trachytalk.Services;
 
-public class PhraseService : IPhraseService
+public class PhraseService(Database database, ILoggingService loggingService) : IPhraseService
 {
-    private readonly Database _database;
-    private ILoggingService _loggingService;
+    private readonly State<string> _phraseSuggestionState = new(string.Empty);
+    private readonly State<List<string>> _wordSuggestionState = new([]);
     
-    
-    private readonly Subject<string> _phraseSuggestionSubject = new();
-    public IObservable<string> PhraseSuggestionObservable => _phraseSuggestionSubject.AsObservable();
-    
-    
-    private readonly Subject<List<string>> _wordSuggestionSubject = new();
-    public IObservable<List<string>> WordSuggestionObservable => _wordSuggestionSubject.AsObservable();
+    public IDisposable SubscribeToPhraseSuggestions(Action<string> onChange)
+        => _phraseSuggestionState.Subscribe(onChange);
 
-    
-    public PhraseService(Database database, ILoggingService loggingService)
-    {
-        _database = database;
-        _loggingService = loggingService;
-    }
+    public IDisposable SubscribeToWordSuggestions(Action<List<string>> onChange)
+        => _wordSuggestionState.Subscribe(onChange);
     
     public void UpdatePhraseSuggestions(List<string> phrase)
     {
@@ -30,18 +19,19 @@ public class PhraseService : IPhraseService
         {
             var searchText = string.Join(" ", phrase);
 
-            var suggestion = _database.GetTopPhrase(searchText);
+            var suggestion = database.GetTopPhrase(searchText);
 
             if (suggestion is null)
             {
+                _phraseSuggestionState.SetValue(string.Empty);
                 return;
             }
             
-            _phraseSuggestionSubject.OnNext(suggestion.Text);
+            _phraseSuggestionState.SetValue(suggestion.Text);
         }
         catch (Exception e)
         {
-            _loggingService.LogError(e);
+            loggingService.LogError(e);
             throw;
         }
     }
@@ -50,26 +40,19 @@ public class PhraseService : IPhraseService
     {
         try
         {
-            var suggestions = _database.GetMatchingWords(inputText);
+            var suggestions = database.GetMatchingWords(inputText);
 
-            var results = new List<string>();
+            var results = (from suggestion in suggestions where !string.IsNullOrEmpty(suggestion?.Text) select suggestion.Text).ToList();
 
-            foreach (var suggestion in suggestions)
-            {
-                if (!string.IsNullOrEmpty(suggestion?.Text))
-                {
-                    results.Add(suggestion.Text);
-                }
-            }
-
-            _wordSuggestionSubject.OnNext(results);
+            _wordSuggestionState.SetValue(results);
         }
         catch (Exception e)
         {
-            _loggingService.LogError(e);
+            loggingService.LogError(e);
             throw;
         }
     }
+    
 
     public void PhraseSelected(List<string> phrase)
     {
@@ -79,14 +62,14 @@ public class PhraseService : IPhraseService
         {
             foreach (var word in phrase)
             {
-                _database.AddOrUpdateEntry(word);
+                database.AddOrUpdateEntry(word);
             }
 
-            _database.AddOrUpdateEntry(inputText);
+            database.AddOrUpdateEntry(inputText);
         }
         catch (Exception e)
         {
-            _loggingService.LogError(e);
+            loggingService.LogError(e);
             throw;
         }
     }
