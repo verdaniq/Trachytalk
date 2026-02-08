@@ -136,8 +136,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task SpeakPressed()
     {
-        // Filter out current word placeholder and words with empty text
-        var wordsToSpeak = WordList.Where(w => !w.IsCurrentWord && !string.IsNullOrWhiteSpace(w.Text)).ToList();
+        var wordsToSpeak = WordList.Where(w => !string.IsNullOrWhiteSpace(w.Text)).ToList();
         
         var phrase = string.Join(" ", wordsToSpeak.Select(x => x.Text));
 
