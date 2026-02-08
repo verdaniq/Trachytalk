@@ -139,7 +139,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Filter out current word placeholder and words with empty text
         var wordsToSpeak = WordList.Where(w => !w.IsCurrentWord && !string.IsNullOrWhiteSpace(w.Text)).ToList();
         
-        var phrase = wordsToSpeak.Aggregate(string.Empty, (current, word) => current + $"{word.Text} ").Trim();
+        var phrase = string.Join(" ", wordsToSpeak.Select(x => x.Text));
 
         if (string.IsNullOrWhiteSpace(phrase)) return;
 
