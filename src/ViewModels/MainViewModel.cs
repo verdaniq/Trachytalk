@@ -21,8 +21,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private string _suggestedPhrase = string.Empty;
     private readonly List<string> _suggestedWords = [];
     
-    private IDisposable _wordSubscription;
-    private IDisposable _phraseSubscription;
+    private IDisposable? _wordSubscription;
+    private IDisposable? _phraseSubscription;
 
     public MainViewModel(IPhraseService phraseService, ILoggingService loggingService)
     {
