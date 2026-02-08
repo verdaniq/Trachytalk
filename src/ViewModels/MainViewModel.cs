@@ -9,7 +9,7 @@ namespace Trachytalk.ViewModels;
 public partial class MainViewModel : ObservableObject, IDisposable
 {
     [ObservableProperty]
-    private string _currentWord;
+    private string _currentWord = string.Empty;
 
     public ObservableCollection<Word> WordList { get; set; } = [];
 
