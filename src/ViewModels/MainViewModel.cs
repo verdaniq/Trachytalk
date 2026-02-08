@@ -139,11 +139,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         // Filter out current word placeholder and words with empty text
         var wordsToSpeak = WordList.Where(w => !w.IsCurrentWord && !string.IsNullOrWhiteSpace(w.Text)).ToList();
         
-        var phrase = wordsToSpeak.Aggregate(string.Empty, (current, word) => current + $"{word.Text} ");
+        var phrase = wordsToSpeak.Aggregate(string.Empty, (current, word) => current + $"{word.Text} ").Trim();
 
-        if (string.IsNullOrWhiteSpace(phrase.Trim())) return;
+        if (string.IsNullOrWhiteSpace(phrase)) return;
 
-        await TextToSpeech.SpeakAsync(phrase.Trim(), CancellationToken.None);
+        await TextToSpeech.SpeakAsync(phrase, CancellationToken.None);
         
         _phraseService.PhraseSelected(wordsToSpeak.Select(x => x.Text).ToList());
 
